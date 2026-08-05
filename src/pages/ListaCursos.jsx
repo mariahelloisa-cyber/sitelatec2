@@ -38,10 +38,11 @@ export default function ListaCursos() {
 
   // Categorias fixas ajustadas para bater com as chaves exatas do seu map
   const categoriasFiltro = [
-    'Todas', 
-    'Profissionalizantes premium', 
-    'Profissionalizantes comuns', 
-    'Profissionalizantes avançados'
+    'Todas',
+    'Profissionalizantes premium',
+    'Profissionalizantes comuns',
+    'Profissionalizantes avançados',
+    'Técnicos'
   ];
 
   // Helper para renderizar os ícones idênticos aos da imagem nas abas de categorias
@@ -71,6 +72,12 @@ export default function ListaCursos() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
         );
+      case 'técnicos':
+        return (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -88,6 +95,20 @@ export default function ListaCursos() {
 
     return combinaTexto && combinaCategoria;
   });
+
+  // Cursos cadastrados pelo admin, filtrados pela mesma busca e categoria da lista
+  const cursosCadastradosFiltrados = cursosCadastrados.filter((curso) => {
+    const nomeCurso = curso.titulo || "";
+    const categoriaCurso = curso.categoria || "";
+
+    const combinaTexto = nomeCurso.toLowerCase().includes(pesquisa.toLowerCase());
+    const combinaCategoria = categoriaSelecionada === 'Todas' ||
+                             categoriaCurso.toLowerCase() === categoriaSelecionada.toLowerCase();
+
+    return combinaTexto && combinaCategoria;
+  });
+
+  const totalCursosEncontrados = cursosCadastradosFiltrados.length + cursosFiltrados.length;
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] text-gray-900 antialiased pb-20 flex flex-col">
@@ -156,21 +177,6 @@ export default function ListaCursos() {
         </div>
       </div>
 
-      {/* 1.5 CURSOS EM DESTAQUE (cadastrados pelo admin, exibidos em card) */}
-      {cursosCadastrados.length > 0 && (
-        <div className="max-w-6xl w-full mx-auto px-6 mt-14">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-[5px] h-10 bg-gradient-to-b from-[#cd146e] to-[#6366f1] rounded-full"></div>
-            <h2 className="text-2xl md:text-3xl font-black text-[#1a103c] tracking-tight">Cursos em Destaque</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-            {cursosCadastrados.map((curso) => (
-              <CursoCard key={curso.id} curso={curso} />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 2. FILTROS E CONTEÚDO */}
       <div className="max-w-6xl w-full mx-auto px-6 mt-10">
         
@@ -200,8 +206,17 @@ export default function ListaCursos() {
           <svg className="w-3.5 h-3.5 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
-          <span className="text-[#cd146e] font-extrabold">{cursosFiltrados.length}</span> cursos encontrados
+          <span className="text-[#cd146e] font-extrabold">{totalCursosEncontrados}</span> cursos encontrados
         </div>
+
+        {/* Cursos cadastrados pelo admin, exibidos em card acima da listagem */}
+        {cursosCadastradosFiltrados.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
+            {cursosCadastradosFiltrados.map((curso) => (
+              <CursoCard key={curso.id} curso={curso} />
+            ))}
+          </div>
+        )}
 
         {/* 3. LISTAGEM DE CURSOS */}
         <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">

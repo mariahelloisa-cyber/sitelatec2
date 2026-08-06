@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
+import ParallaxGallery from '../components/ParallaxGallery';
 import { supabase } from '../supabaseClient';
 import imagemInstitucional from '../assets/vagas.png';
 import selo6 from '../assets/selo6.png';
@@ -32,6 +33,8 @@ const REDES_SOCIAIS_PADRAO = REDES_SOCIAIS_CONFIG.reduce((acc, { key }) => {
   acc[`${key}_link`] = '#';
   return acc;
 }, {});
+
+const GALERIA_CAMPOS = Array.from({ length: 9 }, (_, i) => `imagem_${i + 1}`);
 
 function ItemDestaque({ texto, visivel, atraso, lado }) {
   const bordas = lado === 'direita'
@@ -75,6 +78,30 @@ export default function Sobre() {
   const [destaquesVisiveis, setDestaquesVisiveis] = useState(false);
   const refSecaoDestaques = useRef(null);
   const [redesSociais, setRedesSociais] = useState(REDES_SOCIAIS_PADRAO);
+  const [fotosGaleria, setFotosGaleria] = useState(null);
+
+  useEffect(() => {
+    async function buscarGaleria() {
+      try {
+        const { data, error } = await supabase
+          .from('sobre_galeria')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          const urls = GALERIA_CAMPOS.map((campo) => data[campo]).filter(Boolean);
+          if (urls.length === 9) setFotosGaleria(urls);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar a galeria da página Sobre:', err);
+      }
+    }
+    buscarGaleria();
+  }, []);
 
   useEffect(() => {
     async function buscarRedesSociais() {
@@ -456,7 +483,17 @@ export default function Sobre() {
           </div>
         </div>
       </section>
+
+      {/* 2.6 SEÇÃO GALERIA COM PARALLAX */}
+      <div className="bg-white pt-16 md:pt-20 pb-2 text-center">
+        <h2 className="text-3xl md:text-5xl font-black text-[#0f172a] tracking-tight">
+          Nosso <span className="text-[#cd146e]">Espaço</span>
+        </h2>
+        <br></br>
+      </div>
+      <ParallaxGallery images={fotosGaleria} />
       <br></br>
+
       {/* 3. SEÇÃO MANIFESTO (Container mais largo e vídeo sem borda) */}
       {/* Alterado para w-full e max-w-[1440px] para ocupar mais espaço nas laterais */}
       <section className="w-full max-w-[1440px] mx-auto px-4 md:px-6 pb-24">
@@ -518,76 +555,6 @@ Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades
         </div>
       </section>
 
-
-      {/* 4. SEÇÃO LINHA DO TEMPO */}
-      <section className="bg-gray-50 py-24 px-6 border-t border-gray-200/60">
-        <div className="max-w-6xl mx-auto">
-          
-          <div className="text-center mb-20">
-            <h2 className="text-3xl md:text-[40px] font-black text-[#1e293b] mb-3 tracking-tight">
-              Uma trajetória de crescimento
-            </h2>
-            <p className="text-gray-500 font-medium text-base md:text-lg">
-              Inovação e compromisso com a educação brasileira
-            </p>
-          </div>
-
-          <div className="relative w-full space-y-12 md:space-y-0">
-            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-[2px] bg-gray-200 transform md:-translate-x-1/2"></div>
-
-            {linhaDoTempo.map((item, index) => {
-              const renderizaNaEsquerda = index % 2 === 0;
-
-              return (
-                <div 
-                  key={index} 
-                  className={`relative flex flex-col md:flex-row items-start md:items-center w-full md:mb-16 ${
-                    renderizaNaEsquerda ? 'md:flex-row' : 'md:flex-row-reverse'
-                  }`}
-                >
-                  {/* Card Lateral */}
-                  <div className={`w-full md:w-1/2 pl-12 pr-4 md:px-12 flex ${
-                    renderizaNaEsquerda ? 'md:justify-end' : 'md:justify-start'
-                  }`}>
-                    <div className="group bg-white p-6 md:p-7 rounded-2xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] border border-gray-100 border-l-4 border-l-[#cd146e] w-full max-w-[510px] transition-all hover:shadow-[0_15px_35px_-5px_rgba(0,0,0,0.06)]">
-                      
-                      <div className="flex items-center gap-2.5 mb-3.5">
-                        <span className="bg-[#cd146e] text-white font-extrabold py-1 px-3 rounded-full text-xs tracking-wide">
-                          {item.ano}
-                        </span>
-                        <span className="text-[#cd146e] font-black text-xs tracking-wider uppercase">
-                          {item.categoria}
-                        </span>
-                      </div>
-
-                      <h3 className="text-lg md:text-xl font-extrabold text-[#0f172a] mb-2.5 tracking-tight transition-colors duration-300 group-hover:text-[#cd146e]">
-                        {item.titulo}
-                      </h3>
-                      
-                      <p className="text-gray-500 font-medium leading-relaxed text-xs md:text-sm mb-4">
-                        {item.descricao}
-                      </p>
-
-                      {item.imagem && (
-                        <div className="w-full rounded-xl overflow-hidden mt-2 border border-gray-100 shadow-inner">
-                          <img 
-                            src={item.imagem} 
-                            alt={item.titulo} 
-                            className="w-full h-auto max-h-[240px] object-cover transition-transform duration-500 group-hover:scale-105" 
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="absolute left-[10px] md:left-1/2 transform md:-translate-x-1/2 top-7 md:top-auto w-[14px] h-[14px] bg-[#cd146e] rounded-full z-10 border-4 border-white shadow-sm"></div>
-                  <div className="hidden md:block w-1/2"></div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

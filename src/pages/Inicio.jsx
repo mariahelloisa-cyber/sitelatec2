@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient'; // <-- Importação do Supabase
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ParticleText from '../components/ParticleText';
 
 // Configuração da seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós
 const REDES_SOCIAIS_SOBRE_CONFIG = [
@@ -11,6 +12,9 @@ const REDES_SOCIAIS_SOBRE_CONFIG = [
   { key: 'reclameaqui', label: 'Reclame Aqui' },
   { key: 'google', label: 'Google Meu Negócio' },
 ];
+
+// Campos da galeria "Nosso Espaço" da página Sobre Nós (9 fotos fixas)
+const GALERIA_SOBRE_CAMPOS = Array.from({ length: 9 }, (_, i) => `imagem_${i + 1}`);
 
 export default function Inicio() {
   const SENHA_ADMIN_DEFINIDA = "123456"; // <-- MUDAS AQUI A TUA SENHA DO PAINEL!
@@ -102,6 +106,14 @@ export default function Inicio() {
     REDES_SOCIAIS_SOBRE_CONFIG.reduce((acc, { key }) => {
       acc[`${key}_imagem`] = "";
       acc[`${key}_link`] = "";
+      return acc;
+    }, {})
+  );
+
+  // --- Estados para a Galeria "Nosso Espaço" da página Sobre Nós (9 fotos) ---
+  const [galeriaSobreForm, setGaleriaSobreForm] = useState(
+    GALERIA_SOBRE_CAMPOS.reduce((acc, campo) => {
+      acc[campo] = "";
       return acc;
     }, {})
   );
@@ -1169,6 +1181,78 @@ async function handleEliminarNoticia(id) {
     }
   }
 
+  // --- Galeria "Nosso Espaço" da página Sobre Nós (9 fotos) ---
+  async function buscarGaleriaSobreDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('sobre_galeria')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setGaleriaSobreForm((prev) => {
+          const novo = { ...prev };
+          GALERIA_SOBRE_CAMPOS.forEach((campo) => {
+            novo[campo] = data[campo] || "";
+          });
+          return novo;
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao carregar a galeria da página Sobre:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarGaleriaSobreDoSupabase();
+  }, []);
+
+  async function handleSalvarGaleriaSobre(e) {
+    e.preventDefault();
+    try {
+      setMensagemStatus("⏳ Salvando galeria da página Sobre Nós...");
+
+      const dadosFinais = { ...galeriaSobreForm };
+
+      for (const campo of GALERIA_SOBRE_CAMPOS) {
+        const arquivoInput = document.getElementById(`imagem-galeria-${campo}`);
+        const arquivo = arquivoInput?.files[0];
+        if (arquivo) {
+          const nomeArquivo = `sobre-galeria-${campo}-${Date.now()}-${arquivo.name}`;
+          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
+          dadosFinais[campo] = urlData.publicUrl;
+        }
+      }
+
+      const preenchidos = GALERIA_SOBRE_CAMPOS.filter((campo) => dadosFinais[campo]).length;
+      if (preenchidos < 9) {
+        setMensagemStatus(`⚠️ Faltam ${9 - preenchidos} foto(s). A galeria só é exibida quando as 9 estiverem preenchidas.`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('sobre_galeria')
+        .upsert([{ id: 1, ...dadosFinais }], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setGaleriaSobreForm(dadosFinais);
+      GALERIA_SOBRE_CAMPOS.forEach((campo) => {
+        const arquivoInput = document.getElementById(`imagem-galeria-${campo}`);
+        if (arquivoInput) arquivoInput.value = "";
+      });
+      setMensagemStatus("✅ Galeria da página Sobre Nós atualizada com sucesso!");
+    } catch (err) {
+      setMensagemStatus("❌ Erro ao salvar galeria: " + err.message);
+    }
+  }
+
   // --- Foto da Seção "Nossa História" (página Sobre Nós) ---
   async function buscarFotoHistoriaDoSupabase() {
     try {
@@ -1467,6 +1551,7 @@ async function handleEliminarNoticia(id) {
               { key: 'contato', label: 'Contato e Redes Sociais', icon: '📞' },
               { key: 'destaques-sobre', label: 'Destaques (Sobre Nós)', icon: '⭐' },
               { key: 'redes-sobre', label: 'Redes Sociais (Sobre Nós)', icon: '📱' },
+              { key: 'galeria-sobre', label: 'Nosso Espaço (Galeria)', icon: '🖼️' },
             ].map((item) => (
               <button
                 key={item.key}
@@ -1511,6 +1596,7 @@ async function handleEliminarNoticia(id) {
                   contato: 'Contato e Redes Sociais',
                   'destaques-sobre': 'Destaques (Sobre Nós)',
                   'redes-sobre': 'Redes Sociais (Sobre Nós)',
+                  'galeria-sobre': 'Nosso Espaço (Galeria)',
                 }[abaAdmin]} <span>✨</span>
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">Administrador LaTec</p>
@@ -2529,6 +2615,42 @@ async function handleEliminarNoticia(id) {
               </div>
             )}
 
+            {abaAdmin === 'galeria-sobre' && (
+              <div className="flex flex-col gap-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-4xl">
+                  <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Nosso Espaço (Galeria)</h3>
+                  <p className="text-xs text-gray-400 mb-6">
+                    9 fotos exibidas na galeria com efeito parallax, na página Sobre Nós, logo abaixo de "Acompanhe a LATec". Envie as 9 para a galeria substituir as fotos de exemplo.
+                  </p>
+                  <form onSubmit={handleSalvarGaleriaSobre} className="flex flex-col gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {GALERIA_SOBRE_CAMPOS.map((campo, i) => (
+                        <div key={campo} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 items-center">
+                          <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Foto {i + 1}</h4>
+                          {galeriaSobreForm[campo] && (
+                            <img src={galeriaSobreForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                          )}
+                          <input
+                            type="file"
+                            id={`imagem-galeria-${campo}`}
+                            accept="image/*"
+                            className="w-full text-[10px] text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-2 file:py-1 file:text-[10px] file:font-bold cursor-pointer"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer mt-2"
+                    >
+                      💾 Salvar Galeria
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
           </main>
         </div>
       </div>
@@ -2639,10 +2761,17 @@ async function handleEliminarNoticia(id) {
         </div>
       )}
 
+      {/* --- SEÇÃO: TEXTO DE PARTÍCULAS (LATEC) --- */}
+      <div className="w-full bg-white overflow-hidden">
+        <div className="w-full h-[140px] md:h-[200px]">
+          <ParticleText colors={['#cd146e', '#4690D1']} fontSize={150} style={{ minWidth: 0 }} />
+        </div>
+      </div>
+
       {/* --- SEÇÃO 4: DIFERENCIAIS --- */}
 {listaDiferenciais.length > 0 && (
-  <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mt-16 pb-16">
-    <div className="text-center md:text-left mb-8 pl-2">
+  <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mt-[3.25rem] pb-16">
+    <div className="text-center mb-8">
       <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Nossos Diferenciais</h2>
       <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">Por que escolher o LATec para impulsionar o seu futuro profissional?</p>
     </div>

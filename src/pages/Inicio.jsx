@@ -1,5 +1,38 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  PhotoIcon,
+  CheckBadgeIcon,
+  SparklesIcon,
+  NewspaperIcon,
+  BriefcaseIcon,
+  QuestionMarkCircleIcon,
+  AcademicCapIcon,
+  TagIcon,
+  Squares2X2Icon,
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  CheckIcon,
+} from '@heroicons/react/24/solid';
+import {
+  Squares2X2Icon as Squares2X2IconOutline,
+  PhotoIcon as PhotoIconOutline,
+  ShieldCheckIcon,
+  SparklesIcon as SparklesIconOutline,
+  NewspaperIcon as NewspaperIconOutline,
+  ClockIcon,
+  AcademicCapIcon as AcademicCapIconOutline,
+  TagIcon as TagIconOutline,
+  PhoneIcon,
+  StarIcon,
+  ShareIcon,
+  RectangleStackIcon,
+  CubeIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline';
 import { supabase } from '../supabaseClient'; // <-- Importação do Supabase
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -183,6 +216,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
   const [novoTituloCursoCad, setNovoTituloCursoCad] = useState("");
   const [novaDescricaoCursoCad, setNovaDescricaoCursoCad] = useState("");
   const [novaCategoriaCursoCad, setNovaCategoriaCursoCad] = useState("");
+  const [novaCategoriaIdCursoCad, setNovaCategoriaIdCursoCad] = useState("");
   const [novoPrecoCursoCad, setNovoPrecoCursoCad] = useState("");
   const [novoPrecoOriginalCursoCad, setNovoPrecoOriginalCursoCad] = useState("");
   const [novaDuracaoCursoCad, setNovaDuracaoCursoCad] = useState("");
@@ -190,6 +224,15 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
   const [novoSeloMecCursoCad, setNovoSeloMecCursoCad] = useState(false);
   const [novaGradeCurricularCursoCad, setNovaGradeCurricularCursoCad] = useState("");
   const [novosBlocosConteudoCursoCad, setNovosBlocosConteudoCursoCad] = useState("");
+  const [modalCursoCadAberto, setModalCursoCadAberto] = useState(false);
+  const [buscaCursoCadAdmin, setBuscaCursoCadAdmin] = useState("");
+  const [filtroCategoriaCadAdmin, setFiltroCategoriaCadAdmin] = useState("");
+
+  // --- Estados para o Gerenciador de Categorias de Curso ---
+  const [categorias, setCategorias] = useState([]);
+  const [novaCategoriaNome, setNovaCategoriaNome] = useState("");
+  const [categoriaEditandoId, setCategoriaEditandoId] = useState(null);
+  const [editCategoriaNome, setEditCategoriaNome] = useState("");
 
   // 1. Buscar Banners do SUPABASE (Substituindo o Hero do Strapi)
   async function buscarBannersDoSupabase() {
@@ -1423,6 +1466,70 @@ async function handleEliminarNoticia(id) {
     }
   }
 
+  // --- Categorias de Curso ---
+  async function buscarCategoriasDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('categorias')
+        .select('*')
+        .order('nome', { ascending: true });
+      if (error) throw error;
+      setCategorias(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar categorias:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarCategoriasDoSupabase();
+  }, []);
+
+  async function handleAdicionarCategoria(e) {
+    e.preventDefault();
+    if (!novaCategoriaNome.trim()) return;
+    try {
+      const { error } = await supabase.from('categorias').insert([{ nome: novaCategoriaNome.trim() }]);
+      if (error) throw error;
+      setNovaCategoriaNome("");
+      buscarCategoriasDoSupabase();
+    } catch (err) {
+      alert("Erro ao adicionar categoria: " + err.message);
+    }
+  }
+
+  function iniciarEdicaoCategoria(cat) {
+    setCategoriaEditandoId(cat.id);
+    setEditCategoriaNome(cat.nome);
+  }
+
+  function cancelarEdicaoCategoria() {
+    setCategoriaEditandoId(null);
+    setEditCategoriaNome("");
+  }
+
+  async function handleSalvarEdicaoCategoria(id) {
+    if (!editCategoriaNome.trim()) return;
+    try {
+      const { error } = await supabase.from('categorias').update({ nome: editCategoriaNome.trim() }).eq('id', id);
+      if (error) throw error;
+      cancelarEdicaoCategoria();
+      buscarCategoriasDoSupabase();
+    } catch (err) {
+      alert("Erro ao salvar categoria: " + err.message);
+    }
+  }
+
+  async function handleExcluirCategoria(id) {
+    if (!window.confirm("Tem a certeza que quer excluir esta categoria? Os cursos que a usam ficam sem categoria.")) return;
+    try {
+      const { error } = await supabase.from('categorias').delete().eq('id', id);
+      if (error) throw error;
+      buscarCategoriasDoSupabase();
+    } catch (err) {
+      alert("Erro ao excluir categoria: " + err.message);
+    }
+  }
+
   // --- Cursos Cadastrados (cards com página de detalhe própria) ---
   async function buscarCursosCadastradosDoSupabase() {
     try {
@@ -1473,10 +1580,13 @@ async function handleEliminarNoticia(id) {
         imagemCapaUrl = urlCapaData.publicUrl;
       }
 
+      const categoriaSelecionada = categorias.find((c) => String(c.id) === String(novaCategoriaIdCursoCad));
+
       const { error: insertError } = await supabase.from('cursos_cadastrados').insert([{
         titulo: novoTituloCursoCad,
         descricao: novaDescricaoCursoCad,
-        categoria: novaCategoriaCursoCad,
+        categoria: categoriaSelecionada?.nome || "",
+        categoria_id: novaCategoriaIdCursoCad || null,
         preco: parseFloat(novoPrecoCursoCad) || 0,
         preco_original: novoPrecoOriginalCursoCad ? parseFloat(novoPrecoOriginalCursoCad) : null,
         duracao: novaDuracaoCursoCad,
@@ -1494,6 +1604,7 @@ async function handleEliminarNoticia(id) {
       setNovoTituloCursoCad("");
       setNovaDescricaoCursoCad("");
       setNovaCategoriaCursoCad("");
+      setNovaCategoriaIdCursoCad("");
       setNovoPrecoCursoCad("");
       setNovoPrecoOriginalCursoCad("");
       setNovaDuracaoCursoCad("");
@@ -1503,10 +1614,16 @@ async function handleEliminarNoticia(id) {
       setNovosBlocosConteudoCursoCad("");
       if (inputImagem) inputImagem.value = "";
       if (inputImagemCapa) inputImagemCapa.value = "";
+      setModalCursoCadAberto(false);
       buscarCursosCadastradosDoSupabase();
     } catch (err) {
       setMensagemStatus("❌ Erro ao salvar o curso: " + err.message);
     }
+  }
+
+  function abrirModalNovoCurso() {
+    cancelarEdicaoCursoCadastrado();
+    setModalCursoCadAberto(true);
   }
 
   // --- Carrega um curso cadastrado no formulário para edição ---
@@ -1515,6 +1632,7 @@ async function handleEliminarNoticia(id) {
     setNovoTituloCursoCad(curso.titulo || "");
     setNovaDescricaoCursoCad(curso.descricao || "");
     setNovaCategoriaCursoCad(curso.categoria || "");
+    setNovaCategoriaIdCursoCad(curso.categoria_id || "");
     setNovoPrecoCursoCad(curso.preco ?? "");
     setNovoPrecoOriginalCursoCad(curso.preco_original ?? "");
     setNovaDuracaoCursoCad(curso.duracao || "");
@@ -1522,7 +1640,7 @@ async function handleEliminarNoticia(id) {
     setNovoSeloMecCursoCad(curso.selo_mec || false);
     setNovaGradeCurricularCursoCad(curso.grade_curricular || "");
     setNovosBlocosConteudoCursoCad(curso.blocos_conteudo || "");
-    window.scrollTo({ top: 300, behavior: 'smooth' });
+    setModalCursoCadAberto(true);
   }
 
   function cancelarEdicaoCursoCadastrado() {
@@ -1530,6 +1648,7 @@ async function handleEliminarNoticia(id) {
     setNovoTituloCursoCad("");
     setNovaDescricaoCursoCad("");
     setNovaCategoriaCursoCad("");
+    setNovaCategoriaIdCursoCad("");
     setNovoPrecoCursoCad("");
     setNovoPrecoOriginalCursoCad("");
     setNovaDuracaoCursoCad("");
@@ -1537,6 +1656,7 @@ async function handleEliminarNoticia(id) {
     setNovoSeloMecCursoCad(false);
     setNovaGradeCurricularCursoCad("");
     setNovosBlocosConteudoCursoCad("");
+    setModalCursoCadAberto(false);
   }
 
   // Função para Salvar as Alterações de um Curso Cadastrado
@@ -1556,10 +1676,13 @@ async function handleEliminarNoticia(id) {
     try {
       setMensagemStatus("⏳ Atualizando curso...");
 
+      const categoriaSelecionada = categorias.find((c) => String(c.id) === String(novaCategoriaIdCursoCad));
+
       const dadosAtualizados = {
         titulo: novoTituloCursoCad,
         descricao: novaDescricaoCursoCad,
-        categoria: novaCategoriaCursoCad,
+        categoria: categoriaSelecionada?.nome || "",
+        categoria_id: novaCategoriaIdCursoCad || null,
         preco: parseFloat(novoPrecoCursoCad) || 0,
         preco_original: novoPrecoOriginalCursoCad ? parseFloat(novoPrecoOriginalCursoCad) : null,
         duracao: novaDuracaoCursoCad,
@@ -1632,27 +1755,26 @@ async function handleEliminarNoticia(id) {
 
           <nav className="flex-1 p-3 flex flex-col gap-1 overflow-y-auto">
             {[
-              { key: 'dashboard', label: 'Dashboard', icon: '🏠' },
-              { key: 'banners', label: 'Banners', icon: '🖼️' },
-              { key: 'selos', label: 'Selos / Parceiros', icon: '🏅' },
-              { key: 'diferenciais', label: 'Diferenciais', icon: '✨' },
-              { key: 'noticias', label: 'Notícias, Vagas e FAQ', icon: '📰' },
-              { key: 'cursos-destaque', label: 'Cursos em Destaque', icon: '🎓' },
-              { key: 'banner-lateral', label: 'Banner Lateral do Blog', icon: '📌' },
-              { key: 'sobre-historia', label: 'Nossa História (Sobre Nós)', icon: '📖' },
-              { key: 'cursos-cadastrados', label: 'Cursos (Cards)', icon: '📚' },
-              { key: 'contato', label: 'Contato e Redes Sociais', icon: '📞' },
-              { key: 'destaques-sobre', label: 'Destaques (Sobre Nós)', icon: '⭐' },
-              { key: 'redes-sobre', label: 'Redes Sociais (Sobre Nós)', icon: '📱' },
-              { key: 'galeria-sobre', label: 'Nosso Espaço (Galeria)', icon: '🖼️' },
-              { key: 'carrossel-3d', label: 'Carrossel 3D (Home)', icon: '🎡' },
+              { key: 'dashboard', label: 'Dashboard', icon: Squares2X2IconOutline },
+              { key: 'banners', label: 'Banners', icon: PhotoIconOutline },
+              { key: 'selos', label: 'Selos', icon: ShieldCheckIcon },
+              { key: 'diferenciais', label: 'Diferenciais', icon: SparklesIconOutline },
+              { key: 'noticias', label: 'Notícias, Vagas e FAQ', icon: NewspaperIconOutline },
+              { key: 'sobre-historia', label: 'Nossa História (Sobre Nós)', icon: ClockIcon },
+              { key: 'cursos-cadastrados', label: 'Cursos (Cards)', icon: AcademicCapIconOutline },
+              { key: 'categorias', label: 'Categorias', icon: TagIconOutline },
+              { key: 'contato', label: 'Contato e Redes Sociais', icon: PhoneIcon },
+              { key: 'destaques-sobre', label: 'Destaques (Sobre Nós)', icon: StarIcon },
+              { key: 'redes-sobre', label: 'Redes Sociais (Sobre Nós)', icon: ShareIcon },
+              { key: 'galeria-sobre', label: 'Nosso Espaço (Galeria)', icon: RectangleStackIcon },
+              { key: 'carrossel-3d', label: 'Carrossel 3D (Home)', icon: CubeIcon },
             ].map((item) => (
               <button
                 key={item.key}
                 onClick={() => setAbaAdmin(item.key)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-left transition-colors cursor-pointer ${abaAdmin === item.key ? "bg-white/20 shadow-inner" : "text-white/85 hover:bg-white/10"}`}
               >
-                <span className="text-base">{item.icon}</span>
+                <item.icon className="w-5 h-5 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </button>
             ))}
@@ -1667,7 +1789,8 @@ async function handleEliminarNoticia(id) {
               }}
               className="w-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-3 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
-              Sair do Painel ➔
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              Sair do Painel
             </button>
           </div>
         </aside>
@@ -1680,19 +1803,18 @@ async function handleEliminarNoticia(id) {
                 {{
                   dashboard: 'Dashboard',
                   banners: 'Banners',
-                  selos: 'Selos / Parceiros',
+                  selos: 'Selos ',
                   diferenciais: 'Diferenciais',
                   noticias: 'Notícias, Vagas e FAQ',
-                  'cursos-destaque': 'Cursos em Destaque',
-                  'banner-lateral': 'Banner Lateral do Blog',
                   'sobre-historia': 'Nossa História (Sobre Nós)',
                   'cursos-cadastrados': 'Cursos (Cards)',
+                  categorias: 'Categorias',
                   contato: 'Contato e Redes Sociais',
                   'destaques-sobre': 'Destaques (Sobre Nós)',
                   'redes-sobre': 'Redes Sociais (Sobre Nós)',
                   'galeria-sobre': 'Nosso Espaço (Galeria)',
                   'carrossel-3d': 'Carrossel 3D (Home)',
-                }[abaAdmin]} <span>✨</span>
+                }[abaAdmin]}
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">Administrador LaTec</p>
             </div>
@@ -1711,19 +1833,20 @@ async function handleEliminarNoticia(id) {
               <div className="flex flex-col gap-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {[
-                    { label: 'Banners Ativos', value: banners.length, icon: '🖼️', bg: 'bg-pink-50', color: 'text-[#cd146e]' },
-                    { label: 'Selos / Parceiros', value: listaSelos.length, icon: '🏅', bg: 'bg-blue-50', color: 'text-blue-600' },
-                    { label: 'Diferenciais', value: listaDiferenciais.length, icon: '✨', bg: 'bg-amber-50', color: 'text-amber-600' },
-                    { label: 'Notícias', value: noticiasDestaque.length, icon: '📰', bg: 'bg-green-50', color: 'text-green-600' },
-                    { label: 'Vagas Abertas', value: vagasAdmin.length, icon: '💼', bg: 'bg-purple-50', color: 'text-purple-600' },
-                    { label: 'FAQs', value: faqsAdmin.length, icon: '📌', bg: 'bg-cyan-50', color: 'text-cyan-600' },
-                    { label: 'Cursos em Destaque', value: cursosDestaque.length, icon: '🎓', bg: 'bg-indigo-50', color: 'text-indigo-600' },
+                    { label: 'Cursos Cadastrados', value: cursosCadastrados.length, icon: AcademicCapIcon, bg: 'bg-[#cd146e]' },
+                    { label: 'Categorias', value: categorias.length, icon: TagIcon, bg: 'bg-indigo-500' },
+                    { label: 'Banners Ativos', value: banners.length, icon: PhotoIcon, bg: 'bg-sky-500' },
+                    { label: 'Selos', value: listaSelos.length, icon: CheckBadgeIcon, bg: 'bg-blue-600' },
+                    { label: 'Diferenciais', value: listaDiferenciais.length, icon: SparklesIcon, bg: 'bg-amber-500' },
+                    { label: 'Notícias', value: noticiasDestaque.length, icon: NewspaperIcon, bg: 'bg-green-600' },
+                    { label: 'Vagas Abertas', value: vagasAdmin.length, icon: BriefcaseIcon, bg: 'bg-purple-600' },
+                    { label: 'FAQs', value: faqsAdmin.length, icon: QuestionMarkCircleIcon, bg: 'bg-cyan-600' },
                   ].map((card) => (
                     <div key={card.label} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black uppercase tracking-wide text-gray-500">{card.label}</span>
-                        <div className={`w-9 h-9 rounded-xl ${card.bg} ${card.color} flex items-center justify-center text-base`}>
-                          {card.icon}
+                        <div className={`w-9 h-9 rounded-xl ${card.bg} text-white flex items-center justify-center shrink-0`}>
+                          <card.icon className="w-4.5 h-4.5" />
                         </div>
                       </div>
                       <span className="text-3xl font-black text-gray-900">{card.value}</span>
@@ -1735,12 +1858,12 @@ async function handleEliminarNoticia(id) {
                   <h3 className="text-lg font-black text-gray-900 mb-4">Ações Rápidas</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {[
-                      { key: 'banners', label: 'Gerenciar Banners', desc: 'Atualizar banners e imagens da homepage', icon: '🖼️', bg: 'bg-pink-100', color: 'text-[#cd146e]' },
-                      { key: 'selos', label: 'Gerenciar Selos', desc: 'Atualizar selos e parceiros institucionais', icon: '🏅', bg: 'bg-blue-100', color: 'text-blue-600' },
-                      { key: 'diferenciais', label: 'Gerenciar Diferenciais', desc: 'Editar os diferenciais exibidos na home', icon: '✨', bg: 'bg-amber-100', color: 'text-amber-600' },
-                      { key: 'noticias', label: 'Notícias, Vagas e FAQ', desc: 'Criar posts, vagas de emprego e perguntas frequentes', icon: '📰', bg: 'bg-green-100', color: 'text-green-600' },
-                      { key: 'cursos-destaque', label: 'Cursos em Destaque', desc: 'Escolher os cursos exibidos em destaque na home', icon: '🎓', bg: 'bg-indigo-100', color: 'text-indigo-600' },
-                      { key: 'banner-lateral', label: 'Banner Lateral do Blog', desc: 'Atualizar a imagem e o link do banner lateral', icon: '📌', bg: 'bg-cyan-100', color: 'text-cyan-600' },
+                      { key: 'cursos-cadastrados', label: 'Gerenciar Cursos', desc: 'Adicionar, editar e organizar cursos por categoria', icon: AcademicCapIcon, bg: 'bg-[#cd146e]' },
+                      { key: 'categorias', label: 'Gerenciar Categorias', desc: 'Organizar as áreas de curso do site', icon: TagIcon, bg: 'bg-indigo-500' },
+                      { key: 'banners', label: 'Gerenciar Banners', desc: 'Atualizar banners e imagens da homepage', icon: PhotoIcon, bg: 'bg-sky-500' },
+                      { key: 'selos', label: 'Gerenciar Selos', desc: 'Atualizar selos institucionais', icon: CheckBadgeIcon, bg: 'bg-blue-600' },
+                      { key: 'diferenciais', label: 'Gerenciar Diferenciais', desc: 'Editar os diferenciais exibidos na home', icon: SparklesIcon, bg: 'bg-amber-500' },
+                      { key: 'noticias', label: 'Notícias, Vagas e FAQ', desc: 'Criar posts, vagas de emprego e perguntas frequentes', icon: NewspaperIcon, bg: 'bg-green-600' },
                     ].map((action) => (
                       <button
                         key={action.key}
@@ -1748,8 +1871,8 @@ async function handleEliminarNoticia(id) {
                         className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-center justify-between text-left hover:shadow-md transition-shadow cursor-pointer"
                       >
                         <div className="flex items-center gap-4 min-w-0">
-                          <div className={`w-11 h-11 rounded-xl ${action.bg} ${action.color} flex items-center justify-center text-lg shrink-0`}>
-                            {action.icon}
+                          <div className={`w-11 h-11 rounded-xl ${action.bg} text-white flex items-center justify-center shrink-0`}>
+                            <action.icon className="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
                             <p className="font-black text-gray-900 text-sm truncate">{action.label}</p>
@@ -1804,7 +1927,7 @@ async function handleEliminarNoticia(id) {
           {/* --- BLOCO 2: GERENCIAR SELOS --- */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-gray-200 pt-10">
             <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Novo Selo / Parceiro</h3>
+              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Novo Selo</h3>
               <form onSubmit={handleAdicionarSelo} className="flex flex-col gap-4">
                 <div>
                   <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Nome da Empresa/Selo</label>
@@ -2233,98 +2356,6 @@ async function handleEliminarNoticia(id) {
               </div>
             )}
 
-            {abaAdmin === 'cursos-destaque' && (
-              <div className="flex flex-col gap-8">
-          {/* --- BLOCO: GERENCIAR CURSOS EM DESTAQUE --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Novo Curso em Destaque</h3>
-              <form onSubmit={handleAdicionarCursoDestaque} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Título do Curso</label>
-                  <input type="text" value={novoTituloCursoDestaque} onChange={(e) => setNovoTituloCursoDestaque(e.target.value)} placeholder="Ex: Marketing Digital" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Resumo</label>
-                  <input type="text" value={novoResumoCursoDestaque} onChange={(e) => setNovoResumoCursoDestaque(e.target.value)} placeholder="Breve descrição do curso" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Duração</label>
-                  <input type="text" value={novaDuracaoCursoDestaque} onChange={(e) => setNovaDuracaoCursoDestaque(e.target.value)} placeholder="Ex: 300h" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Categoria</label>
-                  <input type="text" value={novaCategoriaCursoDestaque} onChange={(e) => setNovaCategoriaCursoDestaque(e.target.value)} placeholder="Ex: Profissionalizante" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Imagem (Do PC)</label>
-                  <input type="file" id="imagem-curso-destaque" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
-                </div>
-                <button type="submit" className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer">➕ Publicar Curso em Destaque</button>
-              </form>
-            </div>
-            <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Cursos em Destaque Ativos ({cursosDestaque.length})</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {cursosDestaque.map((c) => (
-                  <div key={c.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm flex items-center p-3 gap-4">
-                    <img src={c.fotoUrl} alt="" className="w-16 h-16 object-cover rounded-lg bg-gray-800 shrink-0" />
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-black text-gray-900 truncate">{c.titulo}</p>
-                      <p className="text-[10px] text-gray-400 truncate uppercase font-bold">{c.categoria} · {c.duracao}</p>
-                    </div>
-                    <button
-                      onClick={() => handleEliminarCursoDestaque(c.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs cursor-pointer shrink-0"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-              </div>
-            )}
-
-            {abaAdmin === 'banner-lateral' && (
-              <div className="flex flex-col gap-8">
-          {/* --- BLOCO: GERENCIAR BANNER LATERAL DO BLOG --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">
-                {bannerLateral ? 'Substituir Banner Lateral' : 'Novo Banner Lateral'}
-              </h3>
-              <form onSubmit={handleAdicionarBannerLateral} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Link de Destino</label>
-                  <input type="text" value={novoLinkBannerLateral} onChange={(e) => setNovoLinkBannerLateral(e.target.value)} placeholder="https://..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Arquivo de Imagem</label>
-                  <input type="file" id="imagem-banner-lateral" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
-                </div>
-                <button type="submit" className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer">➕ Publicar Banner Lateral</button>
-              </form>
-            </div>
-            <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Banner Lateral Atual</h3>
-              {bannerLateral ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm max-w-xs">
-                  <img src={bannerLateral.fotoUrl} alt="" className="w-full h-40 object-cover" />
-                  <button onClick={() => handleEliminarBannerLateral(bannerLateral.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer">✕</button>
-                  <div className="p-3 text-left truncate text-xs font-bold text-gray-800">{bannerLateral.link}</div>
-                </div>
-              ) : (
-                <p className="text-gray-400 text-sm py-6 text-center font-medium bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  Nenhum banner lateral cadastrado.
-                </p>
-              )}
-            </div>
-          </div>
-              </div>
-            )}
-
             {abaAdmin === 'sobre-historia' && (
               <div className="flex flex-col gap-8">
           {/* --- BLOCO: FOTO DA SEÇÃO "NOSSA HISTÓRIA" (PÁGINA SOBRE NÓS) --- */}
@@ -2359,129 +2390,308 @@ async function handleEliminarNoticia(id) {
               </div>
             )}
 
-            {abaAdmin === 'cursos-cadastrados' && (
-              <div className="flex flex-col gap-8">
-          {/* --- BLOCO: GERENCIAR CURSOS CADASTRADOS (CARDS COM PÁGINA DE DETALHE) --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-black uppercase text-gray-900 tracking-wide">
-                  {cursoCadEditando ? "✏️ Editar Curso" : "Novo Curso (Card)"}
-                </h3>
-                {cursoCadEditando && (
-                  <button type="button" onClick={cancelarEdicaoCursoCadastrado} className="text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase cursor-pointer">
-                    Cancelar
+            {abaAdmin === 'cursos-cadastrados' && (() => {
+              const cursosCadFiltrados = cursosCadastrados.filter((c) => {
+                const combinaTexto = (c.titulo || "").toLowerCase().includes(buscaCursoCadAdmin.toLowerCase());
+                const combinaCategoria = !filtroCategoriaCadAdmin || String(c.categoria_id) === String(filtroCategoriaCadAdmin);
+                return combinaTexto && combinaCategoria;
+              });
+              const totalComSeloMec = cursosCadastrados.filter((c) => c.selo_mec).length;
+
+              return (
+              <div className="flex flex-col gap-6">
+                {/* Cabeçalho */}
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#fdf0f6] text-[#cd146e] flex items-center justify-center shrink-0">
+                      <AcademicCapIcon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900">Cursos</h3>
+                      <p className="text-xs text-gray-400">Cursos cadastrados aqui aparecem em cards na página /cursos</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={abrirModalNovoCurso}
+                    className="inline-flex items-center gap-2 bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs px-5 py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer shrink-0"
+                  >
+                    <PlusIcon className="w-4 h-4" /> Novo Curso
                   </button>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                  {[
+                    { label: 'Cursos Cadastrados', value: cursosCadastrados.length, icon: Squares2X2Icon, bg: 'bg-[#cd146e]' },
+                    { label: 'Categorias', value: categorias.length, icon: TagIcon, bg: 'bg-indigo-500' },
+                    { label: 'Com Selo MEC', value: totalComSeloMec, icon: CheckBadgeIcon, bg: 'bg-amber-500' },
+                  ].map((card) => (
+                    <div key={card.label} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase tracking-wide text-gray-500">{card.label}</span>
+                        <div className={`w-9 h-9 rounded-xl ${card.bg} text-white flex items-center justify-center`}>
+                          <card.icon className="w-4.5 h-4.5" />
+                        </div>
+                      </div>
+                      <span className="text-3xl font-black text-gray-900">{card.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Lista */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h4 className="text-xs font-black uppercase text-gray-500 tracking-widest mb-4">Lista</h4>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-5">
+                    <div className="relative flex-1">
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={buscaCursoCadAdmin}
+                        onChange={(e) => setBuscaCursoCadAdmin(e.target.value)}
+                        placeholder="Buscar por nome..."
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                      />
+                    </div>
+                    <select
+                      value={filtroCategoriaCadAdmin}
+                      onChange={(e) => setFiltroCategoriaCadAdmin(e.target.value)}
+                      className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white sm:w-56"
+                    >
+                      <option value="">Todas as categorias</option>
+                      {categorias.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2 max-h-[520px] overflow-y-auto pr-1">
+                    {cursosCadFiltrados.length === 0 ? (
+                      <p className="text-gray-400 text-sm py-10 text-center font-medium">Nenhum curso encontrado.</p>
+                    ) : (
+                      cursosCadFiltrados.map((c) => (
+                        <div key={c.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors">
+                          <img src={c.imagem_url} alt="" className="w-14 h-14 object-cover rounded-lg bg-gray-800 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-gray-900 truncate">{c.titulo}</p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {c.categoria && (
+                                <span className="bg-[#fdf0f6] text-[#cd146e] text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">{c.categoria}</span>
+                              )}
+                              <span className="text-xs text-gray-400">{c.duracao} · R$ {(c.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => iniciarEdicaoCursoCadastrado(c)}
+                            className="bg-blue-100 hover:bg-blue-200 text-blue-600 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+                            title="Editar curso"
+                          >
+                            <PencilSquareIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEliminarCursoCadastrado(c.id)}
+                            className="bg-red-100 hover:bg-red-200 text-red-600 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors"
+                            title="Excluir curso"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal Novo/Editar Curso */}
+                {modalCursoCadAberto && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={cancelarEdicaoCursoCadastrado}>
+                    <div
+                      className="bg-white rounded-2xl w-full max-w-xl max-h-[85vh] overflow-y-auto shadow-2xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="sticky top-0 bg-white flex items-center justify-between px-6 py-5 border-b border-gray-100 z-10">
+                        <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                          <AcademicCapIcon className="w-5 h-5 text-[#cd146e]" />
+                          {cursoCadEditando ? "Editar Curso" : "Novo Curso"}
+                        </h3>
+                        <button type="button" onClick={cancelarEdicaoCursoCadastrado} className="w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-pointer transition-colors">
+                          <XMarkIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={cursoCadEditando ? handleSalvarEdicaoCursoCadastrado : handleAdicionarCursoCadastrado} className="flex flex-col gap-4 p-6">
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Título do Curso</label>
+                          <input type="text" value={novoTituloCursoCad} onChange={(e) => setNovoTituloCursoCad(e.target.value)} placeholder="Ex: Técnico em Enfermagem" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Descrição</label>
+                          <textarea value={novaDescricaoCursoCad} onChange={(e) => setNovaDescricaoCursoCad(e.target.value)} rows={3} placeholder="Breve descrição do curso" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Duração</label>
+                            <input type="text" value={novaDuracaoCursoCad} onChange={(e) => setNovaDuracaoCursoCad(e.target.value)} placeholder="Ex: 12 meses" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Carga Horária</label>
+                            <input type="text" value={novaCargaHorariaCursoCad} onChange={(e) => setNovaCargaHorariaCursoCad(e.target.value)} placeholder="Ex: 800h" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Categoria</label>
+                            <select
+                              value={novaCategoriaIdCursoCad}
+                              onChange={(e) => setNovaCategoriaIdCursoCad(e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                            >
+                              <option value="">Sem categoria</option>
+                              {categorias.map((cat) => (
+                                <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Preço Original (opcional)</label>
+                            <input type="number" step="0.01" value={novoPrecoOriginalCursoCad} onChange={(e) => setNovoPrecoOriginalCursoCad(e.target.value)} placeholder="Ex: 999" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Preço Atual (R$)</label>
+                          <input type="number" step="0.01" value={novoPrecoCursoCad} onChange={(e) => setNovoPrecoCursoCad(e.target.value)} placeholder="Ex: 699" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                          <p className="text-[10px] text-gray-400 mt-1">O preço original aparece riscado. Deixe em branco para não exibir.</p>
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-gray-600 font-bold cursor-pointer bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                          <input type="checkbox" checked={novoSeloMecCursoCad} onChange={(e) => setNovoSeloMecCursoCad(e.target.checked)} className="w-4 h-4 accent-[#cd146e] cursor-pointer" />
+                          Exibir selo MEC
+                        </label>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">
+                            {cursoCadEditando ? "Nova Imagem do Card (opcional)" : "Imagem do Card"}
+                          </label>
+                          <input type="file" id="imagem-curso-cadastrado" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">
+                            {cursoCadEditando ? "Nova Imagem de Capa (opcional)" : "Imagem de Capa (página do curso)"}
+                          </label>
+                          <input type="file" id="imagem-capa-curso-cadastrado" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Grade Curricular</label>
+                          <textarea
+                            value={novaGradeCurricularCursoCad}
+                            onChange={(e) => setNovaGradeCurricularCursoCad(e.target.value)}
+                            rows={5}
+                            placeholder={"1º Semestre\nMatemática Básica | 60h\nPortuguês Instrumental | 40h\n\n2º Semestre\nCálculo I | 80h"}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
+                          />
+                          <p className="text-[10px] text-gray-400 mt-1">Uma linha sem "|" inicia um semestre novo. Disciplinas no formato "nome | carga horária".</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Conteúdo (Como Funciona)</label>
+                          <textarea
+                            value={novosBlocosConteudoCursoCad}
+                            onChange={(e) => setNovosBlocosConteudoCursoCad(e.target.value)}
+                            rows={5}
+                            placeholder={"## Metodologia\nTexto explicando a metodologia...\n\n## Material Didático\nMais texto aqui..."}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
+                          />
+                          <p className="text-[10px] text-gray-400 mt-1">Cada bloco começa com "## Título" seguido do texto.</p>
+                        </div>
+                        <button
+                          type="submit"
+                          className={`w-full text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer ${cursoCadEditando ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#cd146e] hover:bg-[#a61058]'}`}
+                        >
+                          {cursoCadEditando ? "💾 Salvar Alterações" : "➕ Publicar Curso"}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
                 )}
               </div>
-              <form onSubmit={cursoCadEditando ? handleSalvarEdicaoCursoCadastrado : handleAdicionarCursoCadastrado} className="flex flex-col gap-4">
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Título do Curso</label>
-                  <input type="text" value={novoTituloCursoCad} onChange={(e) => setNovoTituloCursoCad(e.target.value)} placeholder="Ex: Técnico em Enfermagem" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Descrição</label>
-                  <textarea value={novaDescricaoCursoCad} onChange={(e) => setNovaDescricaoCursoCad(e.target.value)} rows={3} placeholder="Breve descrição do curso" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white resize-none" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Categoria</label>
-                  <input type="text" value={novaCategoriaCursoCad} onChange={(e) => setNovaCategoriaCursoCad(e.target.value)} placeholder="Ex: Técnico" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Preço (R$)</label>
-                    <input type="number" step="0.01" value={novoPrecoCursoCad} onChange={(e) => setNovoPrecoCursoCad(e.target.value)} placeholder="299.90" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+              );
+            })()}
+
+            {abaAdmin === 'categorias' && (
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-[#fdf0f6] text-[#cd146e] flex items-center justify-center shrink-0">
+                    <TagIcon className="w-6 h-6" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Preço Original</label>
-                    <input type="number" step="0.01" value={novoPrecoOriginalCursoCad} onChange={(e) => setNovoPrecoOriginalCursoCad(e.target.value)} placeholder="opcional" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
+                    <h3 className="text-lg font-black text-gray-900">Categorias</h3>
+                    <p className="text-xs text-gray-400">Organize as áreas de curso do site.</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Duração</label>
-                    <input type="text" value={novaDuracaoCursoCad} onChange={(e) => setNovaDuracaoCursoCad(e.target.value)} placeholder="Ex: 12 meses" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Carga Horária</label>
-                    <input type="text" value={novaCargaHorariaCursoCad} onChange={(e) => setNovaCargaHorariaCursoCad(e.target.value)} placeholder="Ex: 800h" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white" />
-                  </div>
-                </div>
-                <label className="flex items-center gap-2 text-xs text-gray-600 font-bold cursor-pointer">
-                  <input type="checkbox" checked={novoSeloMecCursoCad} onChange={(e) => setNovoSeloMecCursoCad(e.target.checked)} className="w-4 h-4 accent-[#cd146e] cursor-pointer" />
-                  Exibir selo MEC no card
-                </label>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">
-                    {cursoCadEditando ? "Nova Imagem do Card (opcional)" : "Imagem do Card"}
-                  </label>
-                  <input type="file" id="imagem-curso-cadastrado" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">
-                    {cursoCadEditando ? "Nova Imagem de Capa (opcional)" : "Imagem de Capa (página do curso)"}
-                  </label>
-                  <input type="file" id="imagem-capa-curso-cadastrado" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Grade Curricular</label>
-                  <textarea
-                    value={novaGradeCurricularCursoCad}
-                    onChange={(e) => setNovaGradeCurricularCursoCad(e.target.value)}
-                    rows={5}
-                    placeholder={"1º Semestre\nMatemática Básica | 60h\nPortuguês Instrumental | 40h\n\n2º Semestre\nCálculo I | 80h"}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">Uma linha sem "|" inicia um semestre novo. Disciplinas no formato "nome | carga horária".</p>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Conteúdo (Como Funciona)</label>
-                  <textarea
-                    value={novosBlocosConteudoCursoCad}
-                    onChange={(e) => setNovosBlocosConteudoCursoCad(e.target.value)}
-                    rows={5}
-                    placeholder={"## Metodologia\nTexto explicando a metodologia...\n\n## Material Didático\nMais texto aqui..."}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">Cada bloco começa com "## Título" seguido do texto.</p>
-                </div>
-                <button
-                  type="submit"
-                  className={`w-full text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer ${cursoCadEditando ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#cd146e] hover:bg-[#a61058]'}`}
-                >
-                  {cursoCadEditando ? "💾 Salvar Alterações" : "➕ Publicar Curso"}
-                </button>
-              </form>
-            </div>
-            <div className="md:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-fit">
-              <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Cursos Cadastrados ({cursosCadastrados.length})</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {cursosCadastrados.map((c) => (
-                  <div key={c.id} className={`bg-gray-50 border rounded-xl overflow-hidden relative shadow-sm flex items-center p-3 gap-4 ${cursoCadEditando === c.id ? 'border-amber-400 ring-1 ring-amber-300' : 'border-gray-200'}`}>
-                    <img src={c.imagem_url} alt="" className="w-16 h-16 object-cover rounded-lg bg-gray-800 shrink-0" />
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-black text-gray-900 truncate">{c.titulo}</p>
-                      <p className="text-[10px] text-gray-400 truncate uppercase font-bold">{c.categoria} · R$ {(c.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      <a href={`/cursos/${c.id}`} target="_blank" rel="noreferrer" className="text-[10px] text-[#cd146e] font-bold hover:underline">Ver página ↗</a>
-                    </div>
+
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h4 className="text-xs font-black uppercase text-gray-500 tracking-widest mb-4">Lista</h4>
+
+                  <form onSubmit={handleAdicionarCategoria} className="flex gap-3 mb-6">
+                    <input
+                      type="text"
+                      value={novaCategoriaNome}
+                      onChange={(e) => setNovaCategoriaNome(e.target.value)}
+                      placeholder="Ex: Técnico, Bacharelado, Pós-Graduação"
+                      className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                    />
                     <button
-                      onClick={() => iniciarEdicaoCursoCadastrado(c)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs cursor-pointer shrink-0"
-                      title="Editar curso"
+                      type="submit"
+                      className="inline-flex items-center gap-2 bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs px-5 py-2.5 rounded-xl uppercase tracking-wider transition-colors cursor-pointer shrink-0"
                     >
-                      ✎
+                      <PlusIcon className="w-4 h-4" /> Nova Categoria
                     </button>
-                    <button
-                      onClick={() => handleEliminarCursoCadastrado(c.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs cursor-pointer shrink-0"
-                    >
-                      ✕
-                    </button>
+                  </form>
+
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {categorias.length === 0 ? (
+                      <p className="text-gray-400 text-sm py-10 text-center font-medium">Nenhuma categoria cadastrada ainda.</p>
+                    ) : (
+                      categorias.map((cat) => {
+                        const totalCursos = cursosCadastrados.filter((c) => String(c.categoria_id) === String(cat.id)).length;
+                        const editando = categoriaEditandoId === cat.id;
+                        return (
+                          <div key={cat.id} className="flex items-center gap-4 py-4">
+                            {editando ? (
+                              <input
+                                type="text"
+                                value={editCategoriaNome}
+                                onChange={(e) => setEditCategoriaNome(e.target.value)}
+                                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                                autoFocus
+                              />
+                            ) : (
+                              <div className="flex-1 min-w-0">
+                                <p className="font-black text-gray-900 truncate">{cat.nome}</p>
+                                <p className="text-xs text-gray-400">{totalCursos} {totalCursos === 1 ? 'curso' : 'cursos'}</p>
+                              </div>
+                            )}
+                            {editando ? (
+                              <>
+                                <button onClick={() => handleSalvarEdicaoCategoria(cat.id)} className="bg-green-100 hover:bg-green-200 text-green-600 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors" title="Salvar">
+                                  <CheckIcon className="w-4 h-4" />
+                                </button>
+                                <button onClick={cancelarEdicaoCategoria} className="bg-gray-100 hover:bg-gray-200 text-gray-500 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors" title="Cancelar">
+                                  <XMarkIcon className="w-4 h-4" />
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => iniciarEdicaoCategoria(cat)} className="bg-blue-100 hover:bg-blue-200 text-blue-600 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors" title="Editar">
+                                  <PencilSquareIcon className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => handleExcluirCategoria(cat.id)} className="bg-red-100 hover:bg-red-200 text-red-600 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer shrink-0 transition-colors" title="Excluir">
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                </div>
               </div>
             )}
 

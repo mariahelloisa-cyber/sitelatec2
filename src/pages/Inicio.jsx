@@ -3160,6 +3160,8 @@ async function handleEliminarNoticia(id) {
           let estiloDestaque = ehCentral ? "scale-110 md:scale-115 z-30 shadow-2xl ring-4 ring-white" : (ehAdjacente ? "scale-95 z-20 shadow-md ring-2 ring-white/40" : "scale-85 z-10 hidden sm:flex");
           // Escurece com um véu neutro (preto) em vez de opacity, pra não deixar o fundo rosa vazar e tingir a imagem
           const veuDestaque = ehCentral ? "bg-black/0" : (ehAdjacente ? "bg-black/35" : "bg-black/60");
+          // Aproxima só os cards das pontas (0 e 4) do vizinho, sem alterar o espaçamento dos cards do meio
+          const margemPonta = posicaoFisica === 0 ? "-mr-6 md:-mr-10" : (posicaoFisica === 4 ? "-ml-6 md:-ml-10" : "");
 
           const urlImagem = itemData.fotoUrl || itemData.imagem_url || itemData.foto_url;
 
@@ -3167,7 +3169,7 @@ async function handleEliminarNoticia(id) {
             <div
               key={`card-fisico-${posicaoFisica}`}
               style={{ backgroundImage: `url('${urlImagem}')` }}
-              className={`w-[22%] min-w-[220px] md:min-w-[300px] h-[360px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque}`}
+              className={`w-[22%] min-w-[220px] md:min-w-[300px] h-[360px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque} ${margemPonta}`}
             >
               <div className={`absolute inset-0 transition-colors duration-500 z-10 ${veuDestaque}`}></div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>

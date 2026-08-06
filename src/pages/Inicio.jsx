@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient'; // <-- Importação do Supabase
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ParticleText from '../components/ParticleText';
+import RoundCarousel from '../components/RoundCarousel';
 
 // Configuração da seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós
 const REDES_SOCIAIS_SOBRE_CONFIG = [
@@ -16,8 +18,14 @@ const REDES_SOCIAIS_SOBRE_CONFIG = [
 // Campos da galeria "Nosso Espaço" da página Sobre Nós (9 fotos fixas)
 const GALERIA_SOBRE_CAMPOS = Array.from({ length: 9 }, (_, i) => `imagem_${i + 1}`);
 
+// Campos do carrossel 3D da Home (até 12 fotos, mínimo 3 pra exibir)
+const CARROSSEL_3D_CAMPOS = Array.from({ length: 12 }, (_, i) => `imagem_${i + 1}`);
+const CARROSSEL_3D_MINIMO = 3;
+
 export default function Inicio() {
   const SENHA_ADMIN_DEFINIDA = "123456"; // <-- MUDAS AQUI A TUA SENHA DO PAINEL!
+  const navigate = useNavigate();
+  const [buscaCursoHome, setBuscaCursoHome] = useState("");
 
   // --- Estados do Painel Administrativo Embutido ---
   const [modoAdmin, setModoAdmin] = useState(false);
@@ -75,6 +83,13 @@ export default function Inicio() {
   const [bannerLateral, setBannerLateral] = useState(null);
   const [fotoHistoria, setFotoHistoria] = useState(null);
   const [depoimentos, setDepoimentos] = useState([]);
+  const [carrossel3dImagens, setCarrossel3dImagens] = useState(undefined);
+  const [carrossel3dForm, setCarrossel3dForm] = useState(
+    CARROSSEL_3D_CAMPOS.reduce((acc, campo) => {
+      acc[campo] = "";
+      return acc;
+    }, {})
+  );
 
   // --- Estados para o Contato e Redes Sociais do Rodapé (editável no Admin) ---
   const [contatoFooterForm, setContatoFooterForm] = useState({
@@ -1253,6 +1268,84 @@ async function handleEliminarNoticia(id) {
     }
   }
 
+  // --- Carrossel 3D da Home (até 12 fotos) ---
+  async function buscarCarrossel3DDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('home_carrossel_3d')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setCarrossel3dForm((prev) => {
+          const novo = { ...prev };
+          CARROSSEL_3D_CAMPOS.forEach((campo) => {
+            novo[campo] = data[campo] || "";
+          });
+          return novo;
+        });
+
+        const urls = CARROSSEL_3D_CAMPOS.map((campo) => data[campo]).filter(Boolean);
+        if (urls.length >= CARROSSEL_3D_MINIMO) {
+          setCarrossel3dImagens(urls.map((src) => ({ src })));
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar o carrossel 3D da Home:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarCarrossel3DDoSupabase();
+  }, []);
+
+  async function handleSalvarCarrossel3D(e) {
+    e.preventDefault();
+    try {
+      setMensagemStatus("⏳ Salvando carrossel 3D da Home...");
+
+      const dadosFinais = { ...carrossel3dForm };
+
+      for (const campo of CARROSSEL_3D_CAMPOS) {
+        const arquivoInput = document.getElementById(`imagem-carrossel3d-${campo}`);
+        const arquivo = arquivoInput?.files[0];
+        if (arquivo) {
+          const nomeArquivo = `carrossel3d-${campo}-${Date.now()}-${arquivo.name}`;
+          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
+          dadosFinais[campo] = urlData.publicUrl;
+        }
+      }
+
+      const urlsPreenchidas = CARROSSEL_3D_CAMPOS.map((campo) => dadosFinais[campo]).filter(Boolean);
+      if (urlsPreenchidas.length < CARROSSEL_3D_MINIMO) {
+        setMensagemStatus(`⚠️ Envie pelo menos ${CARROSSEL_3D_MINIMO} fotos. O carrossel só é exibido a partir desse mínimo.`);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('home_carrossel_3d')
+        .upsert([{ id: 1, ...dadosFinais }], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setCarrossel3dForm(dadosFinais);
+      setCarrossel3dImagens(urlsPreenchidas.map((src) => ({ src })));
+      CARROSSEL_3D_CAMPOS.forEach((campo) => {
+        const arquivoInput = document.getElementById(`imagem-carrossel3d-${campo}`);
+        if (arquivoInput) arquivoInput.value = "";
+      });
+      setMensagemStatus("✅ Carrossel 3D da Home atualizado com sucesso!");
+    } catch (err) {
+      setMensagemStatus("❌ Erro ao salvar carrossel 3D: " + err.message);
+    }
+  }
+
   // --- Foto da Seção "Nossa História" (página Sobre Nós) ---
   async function buscarFotoHistoriaDoSupabase() {
     try {
@@ -1552,6 +1645,7 @@ async function handleEliminarNoticia(id) {
               { key: 'destaques-sobre', label: 'Destaques (Sobre Nós)', icon: '⭐' },
               { key: 'redes-sobre', label: 'Redes Sociais (Sobre Nós)', icon: '📱' },
               { key: 'galeria-sobre', label: 'Nosso Espaço (Galeria)', icon: '🖼️' },
+              { key: 'carrossel-3d', label: 'Carrossel 3D (Home)', icon: '🎡' },
             ].map((item) => (
               <button
                 key={item.key}
@@ -1597,6 +1691,7 @@ async function handleEliminarNoticia(id) {
                   'destaques-sobre': 'Destaques (Sobre Nós)',
                   'redes-sobre': 'Redes Sociais (Sobre Nós)',
                   'galeria-sobre': 'Nosso Espaço (Galeria)',
+                  'carrossel-3d': 'Carrossel 3D (Home)',
                 }[abaAdmin]} <span>✨</span>
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">Administrador LaTec</p>
@@ -2651,6 +2746,42 @@ async function handleEliminarNoticia(id) {
               </div>
             )}
 
+            {abaAdmin === 'carrossel-3d' && (
+              <div className="flex flex-col gap-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-4xl">
+                  <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Carrossel 3D (Home)</h3>
+                  <p className="text-xs text-gray-400 mb-6">
+                    Até 12 fotos que giram no carrossel 3D da Home, na seção "Faça igual a eles, e se junte a LATEC". Envie pelo menos {CARROSSEL_3D_MINIMO} para substituir as fotos de exemplo — os campos vazios são ignorados.
+                  </p>
+                  <form onSubmit={handleSalvarCarrossel3D} className="flex flex-col gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {CARROSSEL_3D_CAMPOS.map((campo, i) => (
+                        <div key={campo} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 items-center">
+                          <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Foto {i + 1}</h4>
+                          {carrossel3dForm[campo] && (
+                            <img src={carrossel3dForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                          )}
+                          <input
+                            type="file"
+                            id={`imagem-carrossel3d-${campo}`}
+                            accept="image/*"
+                            className="w-full text-[10px] text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-2 file:py-1 file:text-[10px] file:font-bold cursor-pointer"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer mt-2"
+                    >
+                      💾 Salvar Carrossel 3D
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
           </main>
         </div>
       </div>
@@ -2738,6 +2869,39 @@ async function handleEliminarNoticia(id) {
         </div>
       </div>
 
+      {/* --- SEÇÃO: BUSCA DE CURSOS --- */}
+      <div className="w-full bg-[#f8fafc] py-14 md:py-16 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Encontre o curso ideal para você</h2>
+          <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">Pesquise por nome, área ou palavra-chave</p>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              navigate(`/cursos${buscaCursoHome.trim() ? `?busca=${encodeURIComponent(buscaCursoHome.trim())}` : ''}`);
+            }}
+            className="mt-8 w-full bg-white rounded-full shadow-lg flex items-center pl-6 pr-2 py-2 gap-3"
+          >
+            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              value={buscaCursoHome}
+              onChange={(e) => setBuscaCursoHome(e.target.value)}
+              placeholder="Pesquisar curso por nome, área ou palavra-chave..."
+              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none py-2 min-w-0"
+            />
+            <button
+              type="submit"
+              className="bg-[#cd146e] hover:bg-[#a61058] text-white font-bold text-sm px-6 py-3 rounded-full transition-colors cursor-pointer shrink-0"
+            >
+              Buscar
+            </button>
+          </form>
+        </div>
+      </div>
+
       {/* --- SEÇÃO 3: ESTEIRA DE SELOS --- */}
       {listaSelos.length > 0 && (
         <div className="w-full bg-white mt-4 pb-4 border-b border-gray-100 shadow-inner">
@@ -2770,18 +2934,22 @@ async function handleEliminarNoticia(id) {
 
       {/* --- SEÇÃO 4: DIFERENCIAIS --- */}
 {listaDiferenciais.length > 0 && (
-  <div className="w-full bg-white pt-[3.25rem] pb-16">
+  <div className="w-full bg-[#cd146e] pt-[3.25rem] pb-16">
   <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
     <div className="text-center mb-8">
-      <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Nossos Diferenciais</h2>
-      <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">Por que escolher o LATec para impulsionar o seu futuro profissional?</p>
+      <h2 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">Nossos Diferenciais</h2>
+      <p className="text-sm md:text-base text-white/85 mt-2 font-medium">Por que escolher o LATec para impulsionar o seu futuro profissional?</p>
     </div>
      <div className="w-full flex flex-col items-center">
       <div className="w-full min-h-[460px] flex items-center justify-center relative overflow-x-hidden overflow-y-visible px-2 py-10 gap-3 md:gap-6">
         {[0, 1, 2, 3, 4].map((posicaoFisica) => {
           const itemData = obterDadoDoCard(posicaoFisica);
           if (!itemData) return null;
-          let estiloDestaque = posicaoFisica === 2 ? "scale-110 md:scale-115 opacity-100 z-30 shadow-2xl ring-4 ring-[#cd146e]/100" : (posicaoFisica === 1 || posicaoFisica === 3 ? "opacity-40 scale-95 z-20 shadow-md" : "opacity-10 scale-85 z-10 hidden sm:flex");
+          const ehCentral = posicaoFisica === 2;
+          const ehAdjacente = posicaoFisica === 1 || posicaoFisica === 3;
+          let estiloDestaque = ehCentral ? "scale-110 md:scale-115 z-30 shadow-2xl ring-4 ring-white" : (ehAdjacente ? "scale-95 z-20 shadow-md ring-2 ring-white/40" : "scale-85 z-10 hidden sm:flex");
+          // Escurece com um véu neutro (preto) em vez de opacity, pra não deixar o fundo rosa vazar e tingir a imagem
+          const veuDestaque = ehCentral ? "bg-black/0" : (ehAdjacente ? "bg-black/35" : "bg-black/60");
 
           const urlImagem = itemData.fotoUrl || itemData.imagem_url || itemData.foto_url;
 
@@ -2791,6 +2959,7 @@ async function handleEliminarNoticia(id) {
               style={{ backgroundImage: `url('${urlImagem}')` }}
               className={`w-[22%] min-w-[220px] md:min-w-[300px] h-[360px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque}`}
             >
+              <div className={`absolute inset-0 transition-colors duration-500 z-10 ${veuDestaque}`}></div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>
               <div className="relative z-20 text-left pl-1 pr-2 pb-1">
                 <h4 className="text-white text-base md:text-lg font-extrabold tracking-wide leading-snug uppercase">{itemData.titulo}</h4>
@@ -2804,7 +2973,7 @@ async function handleEliminarNoticia(id) {
           type="button"
           onClick={irParaEsquerda}
           aria-label="Ver diferencial anterior"
-          className="w-10 h-10 rounded-full bg-[#cd146e] hover:bg-black text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
+          className="w-10 h-10 rounded-full bg-white hover:bg-[#1a103c] text-[#cd146e] hover:text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -2813,7 +2982,7 @@ async function handleEliminarNoticia(id) {
 
         <div className="flex items-center gap-2">
           {listaDiferenciais.map((_, idx) => (
-            <span key={idx} className={`w-2 h-2 rounded-full transition-colors ${idx === indiceAtivo ? 'bg-[#cd146e]' : 'bg-gray-200'}`} />
+            <span key={idx} className={`w-2 h-2 rounded-full transition-colors ${idx === indiceAtivo ? 'bg-white' : 'bg-white/35'}`} />
           ))}
         </div>
 
@@ -2821,7 +2990,7 @@ async function handleEliminarNoticia(id) {
           type="button"
           onClick={irParaDireita}
           aria-label="Ver próximo diferencial"
-          className="w-10 h-10 rounded-full bg-[#cd146e] hover:bg-black text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
+          className="w-10 h-10 rounded-full bg-white hover:bg-[#1a103c] text-[#cd146e] hover:text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -2922,8 +3091,20 @@ async function handleEliminarNoticia(id) {
         </div>
       )}
 
+      {/* --- SEÇÃO: CARROSSEL 3D DE FOTOS --- */}
+      <section className="w-full bg-white pt-16 md:pt-20 pb-4 md:pb-6">
+        <div className="max-w-3xl mx-auto px-4 text-center mb-10">
+          <h2 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">
+            Faça igual a eles, e se junte a <span className="text-[#cd146e]">LATEC</span>
+          </h2>
+        </div>
+        <div className="w-full h-[320px] md:h-[420px]">
+          <RoundCarousel background="#ffffff" images={carrossel3dImagens} />
+        </div>
+      </section>
+
       {/* --- SEÇÃO: BLOG LA TEC (100% DINÂMICA, DESIGN ORIGINAL) --- */}
-<section className="relative py-16 md:py-24 bg-[#fbf7f9] w-full overflow-hidden">
+<section className="relative pt-6 md:pt-10 pb-16 md:pb-24 bg-[#fbf7f9] w-full overflow-hidden">
   <div className="absolute top-20 left-10 hidden lg:block opacity-30">
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
       <pattern id="dots1" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">

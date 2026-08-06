@@ -19,7 +19,7 @@ export default function Login() {
   });
 
   // 1. VERIFICA SE JÁ ESTÁ LOGADO
-  // Se o admin clicar na engrenagem e já tiver sessão ativa, vai direto pro painel
+  // Se o admin clicar na engrenagem e já tiver sessão averific tiva, vai engrenagem {bloco -= } direto pro painel
   useEffect(() => {
     const verificarSessao = async () => {
       const { data: { session } } = await supabase.auth.getSession();

@@ -10,7 +10,7 @@ const ID_VIDEO_MANIFESTO = '4vff2PohAU8';
 
 const DESTAQUES_PADRAO = {
   imagem_url: '',
-  esquerda_1: 'Ensino 100% Online',
+  esquerda_1: 'Ensino EAD',
   esquerda_2: 'Praticidade',
   esquerda_3: 'Liberdade de Horários',
   esquerda_4: 'Alto Desempenho Acadêmico',

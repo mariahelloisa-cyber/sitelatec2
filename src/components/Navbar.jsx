@@ -43,9 +43,9 @@ export default function Navbar() {
               <Link to="/sobre" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Sobre Nós</Link>
               <Link to="/cursos" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Cursos</Link>
               <Link to="/blog" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Blog</Link>
+              <Link to="/validacaoRastreio" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Aproveitamento</Link>
               <Link to="/vagas" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Vagas</Link>
               <Link to="/ouvidoria" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Ouvidoria</Link>
-              <Link to="/validacaoRastreio" className="text-gray-700 hover:text-[#cd146e] font-medium text-sm transition-colors">Aproveitamento</Link>
             </div>
 
             {/* Botão Fale Conosco + Ícone do Carrinho */}

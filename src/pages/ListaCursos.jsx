@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import CursoCard from '../components/CursoCard';
+import CursoListItem from '../components/CursoListItem';
 import { supabase } from '../supabaseClient';
 import { listaCursosGiga } from './cursosData';
 import imagemFundo from '../assets/imghero.png';
@@ -8,7 +9,8 @@ import { useCartStore } from '../store/cartStore';
 import CarrinhoSidebar from '../components/CarrinhoSidebar';// <-- ADICIONE ESTA LINHA AQUI
 
 export default function ListaCursos() {
-  const [pesquisa, setPesquisa] = useState('');
+  const [searchParams] = useSearchParams();
+  const [pesquisa, setPesquisa] = useState(() => searchParams.get('busca') || '');
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todas');
   const adicionarAoCarrinho = useCartStore((state) => state.adicionarAoCarrinho);
   const carrinho = useCartStore((state) => state.carrinho);
@@ -211,9 +213,9 @@ export default function ListaCursos() {
 
         {/* Cursos cadastrados pelo admin, exibidos em card acima da listagem */}
         {cursosCadastradosFiltrados.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
+          <div className="flex flex-col gap-4 md:gap-5 mb-8">
             {cursosCadastradosFiltrados.map((curso) => (
-              <CursoCard key={curso.id} curso={curso} />
+              <CursoListItem key={curso.id} curso={curso} />
             ))}
           </div>
         )}

@@ -2740,21 +2740,21 @@ async function handleEliminarNoticia(id) {
 
       {/* --- SEÇÃO 3: ESTEIRA DE SELOS --- */}
       {listaSelos.length > 0 && (
-        <div className="w-full bg-white mt-4 pb-8 border-b border-gray-100 shadow-inner">
-          <div className="w-full bg-[#cd146e] py-4 mb-8 flex justify-center items-center shadow-md">
+        <div className="w-full bg-white mt-4 pb-4 border-b border-gray-100 shadow-inner">
+          <div className="w-full bg-[#cd146e] py-4 mb-4 flex justify-center items-center shadow-md">
             <h2 className="text-white text-base md:text-xl font-black uppercase tracking-[0.2em] text-center px-4">
               Selos de Confiança & Reconhecimento
             </h2>
           </div>
-          <div className="relative w-full overflow-hidden flex bg-white py-4">
+          <div className="relative w-full overflow-hidden flex bg-white py-2">
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-14 md:h-20 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-20 md:h-28 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
 ))}
             </div>
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-14 md:h-20 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-20 md:h-28 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
 ))}
             </div>
           </div>
@@ -2763,33 +2763,33 @@ async function handleEliminarNoticia(id) {
 
       {/* --- SEÇÃO: TEXTO DE PARTÍCULAS (LATEC) --- */}
       <div className="w-full bg-white overflow-hidden">
-        <div className="w-full h-[140px] md:h-[200px]">
+        <div className="w-full h-[180px] md:h-[260px]">
           <ParticleText colors={['#cd146e', '#4690D1']} fontSize={150} style={{ minWidth: 0 }} />
         </div>
       </div>
 
       {/* --- SEÇÃO 4: DIFERENCIAIS --- */}
 {listaDiferenciais.length > 0 && (
-  <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mt-[3.25rem] pb-16">
+  <div className="w-full bg-white pt-[3.25rem] pb-16">
+  <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
     <div className="text-center mb-8">
       <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Nossos Diferenciais</h2>
       <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">Por que escolher o LATec para impulsionar o seu futuro profissional?</p>
     </div>
-    <div className="w-full flex flex-col items-center">
-      <div className="w-full min-h-[460px] flex items-center justify-center relative overflow-hidden px-2 py-10 md:py-14 gap-4 md:gap-8">
+     <div className="w-full flex flex-col items-center">
+      <div className="w-full min-h-[460px] flex items-center justify-center relative overflow-x-hidden overflow-y-visible px-2 py-10 gap-3 md:gap-6">
         {[0, 1, 2, 3, 4].map((posicaoFisica) => {
           const itemData = obterDadoDoCard(posicaoFisica);
           if (!itemData) return null;
           let estiloDestaque = posicaoFisica === 2 ? "scale-110 md:scale-115 opacity-100 z-30 shadow-2xl ring-4 ring-[#cd146e]/100" : (posicaoFisica === 1 || posicaoFisica === 3 ? "opacity-40 scale-95 z-20 shadow-md" : "opacity-10 scale-85 z-10 hidden sm:flex");
 
-          // 🚨 SEGURANÇA: Garante que vai pegar a URL da imagem não importa o nome da coluna no banco
           const urlImagem = itemData.fotoUrl || itemData.imagem_url || itemData.foto_url;
 
           return (
             <div
               key={`card-fisico-${posicaoFisica}`}
-              style={{ backgroundImage: `url('${urlImagem}')` }} // <-- Adicionadas aspas simples para proteger URLs complexas
-              className={`w-[22%] min-w-[260px] md:min-w-[320px] h-[380px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque}`}
+              style={{ backgroundImage: `url('${urlImagem}')` }}
+              className={`w-[22%] min-w-[220px] md:min-w-[300px] h-[360px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>
               <div className="relative z-20 text-left pl-1 pr-2 pb-1">
@@ -2799,19 +2799,39 @@ async function handleEliminarNoticia(id) {
           );
         })}
       </div>
-      <div className="flex justify-center items-center gap-5 mt-8">
-        <button onClick={irParaEsquerda} className="w-12 h-12 rounded-full bg-[#cd146e] hover:bg-[#a61058] text-white flex items-center justify-center shadow-lg transition-all cursor-pointer font-bold text-lg shrink-0">&#10094;</button>
-        <div className="flex gap-2">
+      <div className="mt-6 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={irParaEsquerda}
+          aria-label="Ver diferencial anterior"
+          className="w-10 h-10 rounded-full bg-[#cd146e] hover:bg-black text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div className="flex items-center gap-2">
           {listaDiferenciais.map((_, idx) => (
-            <span key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${idx === indiceAtivo ? 'w-6 bg-[#cd146e]' : 'w-2.5 bg-gray-300'}`} />
+            <span key={idx} className={`w-2 h-2 rounded-full transition-colors ${idx === indiceAtivo ? 'bg-[#cd146e]' : 'bg-gray-200'}`} />
           ))}
         </div>
-        <button onClick={irParaDireita} className="w-12 h-12 rounded-full bg-[#cd146e] hover:bg-[#a61058] text-white flex items-center justify-center shadow-lg transition-all cursor-pointer font-bold text-lg shrink-0">&#10095;</button>
+
+        <button
+          type="button"
+          onClick={irParaDireita}
+          aria-label="Ver próximo diferencial"
+          className="w-10 h-10 rounded-full bg-[#cd146e] hover:bg-black text-white flex items-center justify-center shadow-md transition-all cursor-pointer"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
+  </div>
 )}
-
       {/* --- SEÇÃO 5: CURSOS EM DESTAQUE --- */}
       {cursosDestaque.length > 0 && (
         <div className="w-full bg-[#fdf0f6] relative overflow-hidden mt-0">

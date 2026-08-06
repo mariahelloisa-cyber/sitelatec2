@@ -28,7 +28,7 @@ export default function PostDetalhe() {
           id: item.id,
           titulo: item.titulo || "Título do Post",
           resumo: item.resumo || "",
-          conteudo: item.resumo || "", 
+          conteudo: item.corpo || item.resumo || "",
           data: new Date(item.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
           categoria: "NOTÍCIAS",
           fotoUrl: item.imagem_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",
@@ -139,9 +139,16 @@ export default function PostDetalhe() {
         </div>
 
         {/* Título Principal Imponente */}
-        <h1 className="text-3xl sm:text-4xl md:text-[46px] font-black text-[#0F172A] tracking-tight leading-[1.15] max-w-5xl mb-6">
+        <h1 className="text-3xl sm:text-4xl md:text-[46px] font-black text-[#0F172A] tracking-tight leading-[1.15] max-w-5xl mb-4">
           {post.titulo}
         </h1>
+
+        {/* Subtítulo */}
+        {post.resumo && (
+          <p className="text-base md:text-lg text-gray-500 font-medium max-w-3xl leading-relaxed mb-6">
+            {post.resumo}
+          </p>
+        )}
 
         {/* Metadados e Ação de Compartilhar */}
         <div className="border-b border-gray-100 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-gray-400">

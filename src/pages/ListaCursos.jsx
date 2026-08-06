@@ -211,7 +211,7 @@ export default function ListaCursos() {
 
         {/* Cursos cadastrados pelo admin, exibidos em card acima da listagem */}
         {cursosCadastradosFiltrados.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
             {cursosCadastradosFiltrados.map((curso) => (
               <CursoCard key={curso.id} curso={curso} />
             ))}

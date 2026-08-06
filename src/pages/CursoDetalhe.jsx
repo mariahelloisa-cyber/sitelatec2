@@ -546,7 +546,7 @@ export default function CursoDetalhe() {
                 subtitulo="Continue explorando outras oportunidades para acelerar sua carreira."
               />
             </AoRolar>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
               {cursosRelacionados.map((relacionado) => (
                 <CursoCard key={relacionado.id} curso={relacionado} />
               ))}

@@ -3,6 +3,15 @@ import { supabase } from '../supabaseClient'; // <-- Importação do Supabase
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+// Configuração da seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós
+const REDES_SOCIAIS_SOBRE_CONFIG = [
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'youtube', label: 'YouTube' },
+  { key: 'reclameaqui', label: 'Reclame Aqui' },
+  { key: 'google', label: 'Google Meu Negócio' },
+];
+
 export default function Inicio() {
   const SENHA_ADMIN_DEFINIDA = "123456"; // <-- MUDAS AQUI A TUA SENHA DO PAINEL!
 
@@ -35,6 +44,7 @@ export default function Inicio() {
   const [noticiaEditando, setNoticiaEditando] = useState(null); // Armazena o ID ou objeto da notícia que está sendo editada
   const [editTitulo, setEditTitulo] = useState("");
   const [editResumo, setEditResumo] = useState("");
+  const [editCorpo, setEditCorpo] = useState("");
   const [editTempoLeitura, setEditTempoLeitura] = useState("");
   const [editDestaque, setEditDestaque] = useState(false);
   // --- Estados para o Gerenciador de FAQ ---
@@ -61,8 +71,76 @@ export default function Inicio() {
   const [bannerLateral, setBannerLateral] = useState(null);
   const [fotoHistoria, setFotoHistoria] = useState(null);
   const [depoimentos, setDepoimentos] = useState([]);
+
+  // --- Estados para o Contato e Redes Sociais do Rodapé (editável no Admin) ---
+  const [contatoFooterForm, setContatoFooterForm] = useState({
+    endereco_linha1: "",
+    endereco_linha2: "",
+    telefone: "",
+    whatsapp_numero: "",
+    email: "",
+    instagram_url: "",
+    facebook_url: "",
+    linkedin_url: "",
+  });
+
+  // --- Estados para a Seção "Destaques" da página Sobre Nós (imagem + 8 tópicos) ---
+  const [destaquesSobreForm, setDestaquesSobreForm] = useState({
+    imagem_url: "",
+    esquerda_1: "",
+    esquerda_2: "",
+    esquerda_3: "",
+    esquerda_4: "",
+    direita_1: "",
+    direita_2: "",
+    direita_3: "",
+    direita_4: "",
+  });
+
+  // --- Estados para a Seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós ---
+  const [redesSociaisSobreForm, setRedesSociaisSobreForm] = useState(
+    REDES_SOCIAIS_SOBRE_CONFIG.reduce((acc, { key }) => {
+      acc[`${key}_imagem`] = "";
+      acc[`${key}_link`] = "";
+      return acc;
+    }, {})
+  );
+
+  // --- Estados para o Formulário de Contato (leva para o WhatsApp) ---
+  const [contatoForm, setContatoForm] = useState({ nome: "", email: "", telefone: "", curso: "", mensagem: "" });
+  const [contatoStatus, setContatoStatus] = useState("idle"); // idle | sucesso | erro
+
+  function handleContatoChange(e) {
+    const { name, value } = e.target;
+    setContatoForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleContatoSubmit(e) {
+    e.preventDefault();
+
+    if (!contatoForm.nome.trim() || !contatoForm.email.trim() || !contatoForm.mensagem.trim()) {
+      setContatoStatus("erro");
+      return;
+    }
+
+    const linhas = [
+      "Novo contato pelo site da LATec:",
+      `Nome: ${contatoForm.nome}`,
+      `E-mail: ${contatoForm.email}`,
+      contatoForm.telefone.trim() && `Telefone: ${contatoForm.telefone}`,
+      contatoForm.curso.trim() && `Curso desejado: ${contatoForm.curso}`,
+      `Mensagem: ${contatoForm.mensagem}`,
+    ].filter(Boolean).join("\n");
+
+    window.open(`https://wa.me/5527998392172?text=${encodeURIComponent(linhas)}`, "_blank");
+
+    setContatoStatus("sucesso");
+    setContatoForm({ nome: "", email: "", telefone: "", curso: "", mensagem: "" });
+  }
+
   const [novoTituloNoticia, setNovoTituloNoticia] = useState("");
 const [novoResumoNoticia, setNovoResumoNoticia] = useState("");
+const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
 
   // --- Estados para o Gerenciador de Cursos em Destaque ---
   const [novoTituloCursoDestaque, setNovoTituloCursoDestaque] = useState("");
@@ -315,16 +393,17 @@ async function handleAdicionarNoticia(e) {
   try {
     setMensagemStatus("⏳ Publicando notícia...");
     const nomeArquivo = `noticia-${Date.now()}-${arquivo.name}`;
-    
+
     await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
     const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
 
     const { error } = await supabase.from('noticias').insert([
-      { 
-        titulo: novoTituloNoticia, 
-        resumo: novoResumoNoticia, 
+      {
+        titulo: novoTituloNoticia,
+        resumo: novoResumoNoticia,
+        corpo: novoCorpoNoticia,
         imagem_url: urlData.publicUrl,
-        destaque: novaNoticiaDestaque, 
+        destaque: novaNoticiaDestaque,
         tempo_leitura: parseInt(novoTempoLeitura) || 3
       }
     ]);
@@ -334,17 +413,19 @@ async function handleAdicionarNoticia(e) {
     setMensagemStatus("✅ Notícia publicada com sucesso!");
     setNovoTituloNoticia("");
     setNovoResumoNoticia("");
+    setNovoCorpoNoticia("");
     setNovoTempoLeitura(""); // <-- Limpa o tempo de leitura
     setNovaNoticiaDestaque(false);
     if (arquivoInput) arquivoInput.value = "";
-    
+
     // Recarrega a lista instantaneamente na tela
     const { data: newData } = await supabase.from('noticias').select('*').order('created_at', { ascending: false });
     setNoticiasDestaque((newData || []).map(item => ({
-      id: item.id, 
-      titulo: item.titulo, 
-      resumo: item.resumo, 
-      fotoUrl: item.imagem_url, 
+      id: item.id,
+      titulo: item.titulo,
+      resumo: item.resumo,
+      corpo: item.corpo,
+      fotoUrl: item.imagem_url,
       destaque: item.destaque,
       tempoLeitura: item.tempo_leitura || 3,
       dataCriacao: new Date(item.created_at).toLocaleDateString('pt-PT')
@@ -487,6 +568,7 @@ async function handleEliminarNoticia(id) {
     setNoticiaEditando(noticia.id);
     setEditTitulo(noticia.titulo);
     setEditResumo(noticia.resumo);
+    setEditCorpo(noticia.corpo || "");
     setEditTempoLeitura(noticia.tempoLeitura || 3);
     setEditDestaque(noticia.destaque || false);
     // Faz scroll suave até o formulário para facilitar a visualização do usuário
@@ -498,7 +580,7 @@ async function handleEliminarNoticia(id) {
     e.preventDefault();
 
     if (!editTitulo.trim() || !editResumo.trim()) {
-      setMensagemStatus("⚠️ Por favor, preencha o título e o resumo!");
+      setMensagemStatus("⚠️ Por favor, preencha o título e o subtítulo!");
       return;
     }
 
@@ -528,6 +610,7 @@ async function handleEliminarNoticia(id) {
       const dadosAtualizados = {
         titulo: editTitulo,
         resumo: editResumo,
+        corpo: editCorpo,
         destaque: editDestaque,
         tempo_leitura: parseInt(editTempoLeitura) || 3
       };
@@ -538,12 +621,18 @@ async function handleEliminarNoticia(id) {
       }
 
       // Atualiza o registro na tabela 'noticias'
-      const { error: updateError } = await supabase
+      const { data: linhasAtualizadas, error: updateError } = await supabase
         .from('noticias')
         .update(dadosAtualizados)
-        .eq('id', noticiaEditando);
+        .eq('id', noticiaEditando)
+        .select();
 
       if (updateError) throw updateError;
+
+      if (!linhasAtualizadas || linhasAtualizadas.length === 0) {
+        setMensagemStatus("⚠️ A notícia não foi atualizada! Verifique as diretrizes de RLS (UPDATE) no SQL Editor do Supabase.");
+        return;
+      }
 
       setMensagemStatus("✅ Notícia atualizada com sucesso!");
       
@@ -551,6 +640,7 @@ async function handleEliminarNoticia(id) {
       setNoticiaEditando(null);
       setEditTitulo("");
       setEditResumo("");
+      setEditCorpo("");
       setEditTempoLeitura("");
       setEditDestaque(false);
       if (arquivoInput) arquivoInput.value = "";
@@ -561,15 +651,16 @@ async function handleEliminarNoticia(id) {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (data && data.length > 0) {
-          setNoticiasDestaque(data.map(item => ({
+      if (dataAtualizada && dataAtualizada.length > 0) {
+          setNoticiasDestaque(dataAtualizada.map(item => ({
             id: item.id,
             titulo: item.titulo,
             resumo: item.resumo,
+            corpo: item.corpo,
             fotoUrl: item.imagem_url,
             destaque: item.destaque,
             // CORREÇÃO: Puxa o tempo de leitura do banco de dados (se não houver, assume 3)
-            tempoLeitura: item.tempo_leitura || 3, 
+            tempoLeitura: item.tempo_leitura || 3,
             dataCriacao: new Date(item.created_at).toLocaleDateString('pt-BR')
           })));
         }
@@ -777,8 +868,10 @@ async function handleEliminarNoticia(id) {
         id: item.id,
         titulo: item.titulo,
         resumo: item.resumo,
+        corpo: item.corpo,
         fotoUrl: item.imagem_url,
         destaque: item.destaque, // <-- Nova propriedade adicionada aqui
+        tempoLeitura: item.tempo_leitura || 3,
         dataCriacao: new Date(item.created_at).toLocaleDateString('pt-PT')
       }));
 
@@ -873,6 +966,206 @@ async function handleEliminarNoticia(id) {
       buscarBannerLateralDoSupabase();
     } catch (err) {
       alert("Erro ao eliminar banner lateral: " + err.message);
+    }
+  }
+
+  // --- Contato e Redes Sociais do Rodapé ---
+  async function buscarContatoFooterDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('contato_footer')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setContatoFooterForm({
+          endereco_linha1: data.endereco_linha1 || "",
+          endereco_linha2: data.endereco_linha2 || "",
+          telefone: data.telefone || "",
+          whatsapp_numero: data.whatsapp_numero || "",
+          email: data.email || "",
+          instagram_url: data.instagram_url || "",
+          facebook_url: data.facebook_url || "",
+          linkedin_url: data.linkedin_url || "",
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao carregar contato do rodapé:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarContatoFooterDoSupabase();
+  }, []);
+
+  function handleContatoFooterChange(e) {
+    const { name, value } = e.target;
+    setContatoFooterForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  // Salva sempre na mesma linha (id fixo = 1), pois é uma configuração única do site
+  async function handleSalvarContatoFooter(e) {
+    e.preventDefault();
+    try {
+      setMensagemStatus("⏳ Salvando informações de contato...");
+
+      const { error } = await supabase
+        .from('contato_footer')
+        .upsert([{ id: 1, ...contatoFooterForm }], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setMensagemStatus("✅ Contato e redes sociais atualizados com sucesso!");
+    } catch (err) {
+      setMensagemStatus("❌ Erro ao salvar contato: " + err.message);
+    }
+  }
+
+  // --- Seção "Destaques" da página Sobre Nós (imagem central + 8 tópicos) ---
+  async function buscarDestaquesSobreDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('sobre_produto_destaque')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setDestaquesSobreForm({
+          imagem_url: data.imagem_url || "",
+          esquerda_1: data.esquerda_1 || "",
+          esquerda_2: data.esquerda_2 || "",
+          esquerda_3: data.esquerda_3 || "",
+          esquerda_4: data.esquerda_4 || "",
+          direita_1: data.direita_1 || "",
+          direita_2: data.direita_2 || "",
+          direita_3: data.direita_3 || "",
+          direita_4: data.direita_4 || "",
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao carregar os destaques da página Sobre:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarDestaquesSobreDoSupabase();
+  }, []);
+
+  function handleDestaquesSobreChange(e) {
+    const { name, value } = e.target;
+    setDestaquesSobreForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSalvarDestaquesSobre(e) {
+    e.preventDefault();
+    try {
+      setMensagemStatus("⏳ Salvando destaques da página Sobre Nós...");
+
+      const arquivoInput = document.getElementById('imagem-destaques-sobre');
+      const arquivo = arquivoInput?.files[0];
+      let imagemUrlFinal = destaquesSobreForm.imagem_url;
+
+      if (arquivo) {
+        const nomeArquivo = `sobre-destaque-${Date.now()}-${arquivo.name}`;
+        const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
+        imagemUrlFinal = urlData.publicUrl;
+      }
+
+      const dadosFinais = { ...destaquesSobreForm, imagem_url: imagemUrlFinal };
+
+      const { error } = await supabase
+        .from('sobre_produto_destaque')
+        .upsert([{ id: 1, ...dadosFinais }], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setDestaquesSobreForm(dadosFinais);
+      if (arquivoInput) arquivoInput.value = "";
+      setMensagemStatus("✅ Destaques da página Sobre Nós atualizados com sucesso!");
+    } catch (err) {
+      setMensagemStatus("❌ Erro ao salvar destaques: " + err.message);
+    }
+  }
+
+  // --- Seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós ---
+  async function buscarRedesSociaisSobreDoSupabase() {
+    try {
+      const { data, error } = await supabase
+        .from('sobre_redes_sociais')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setRedesSociaisSobreForm((prev) => {
+          const novo = { ...prev };
+          REDES_SOCIAIS_SOBRE_CONFIG.forEach(({ key }) => {
+            novo[`${key}_imagem`] = data[`${key}_imagem`] || "";
+            novo[`${key}_link`] = data[`${key}_link`] || "";
+          });
+          return novo;
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao carregar as redes sociais da página Sobre:", err);
+    }
+  }
+
+  useEffect(() => {
+    buscarRedesSociaisSobreDoSupabase();
+  }, []);
+
+  function handleRedesSociaisSobreChange(e) {
+    const { name, value } = e.target;
+    setRedesSociaisSobreForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleSalvarRedesSociaisSobre(e) {
+    e.preventDefault();
+    try {
+      setMensagemStatus("⏳ Salvando redes sociais da página Sobre Nós...");
+
+      const dadosFinais = { ...redesSociaisSobreForm };
+
+      for (const { key } of REDES_SOCIAIS_SOBRE_CONFIG) {
+        const arquivoInput = document.getElementById(`imagem-rede-${key}`);
+        const arquivo = arquivoInput?.files[0];
+        if (arquivo) {
+          const nomeArquivo = `sobre-rede-${key}-${Date.now()}-${arquivo.name}`;
+          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
+          dadosFinais[`${key}_imagem`] = urlData.publicUrl;
+        }
+      }
+
+      const { error } = await supabase
+        .from('sobre_redes_sociais')
+        .upsert([{ id: 1, ...dadosFinais }], { onConflict: 'id' });
+
+      if (error) throw error;
+
+      setRedesSociaisSobreForm(dadosFinais);
+      REDES_SOCIAIS_SOBRE_CONFIG.forEach(({ key }) => {
+        const arquivoInput = document.getElementById(`imagem-rede-${key}`);
+        if (arquivoInput) arquivoInput.value = "";
+      });
+      setMensagemStatus("✅ Redes sociais da página Sobre Nós atualizadas com sucesso!");
+    } catch (err) {
+      setMensagemStatus("❌ Erro ao salvar redes sociais: " + err.message);
     }
   }
 
@@ -1149,7 +1442,7 @@ async function handleEliminarNoticia(id) {
   // --- SE MODO ADMIN ESTIVER ATIVO, EXIBE O PAINEL EM VEZ DO SITE ---
   if (modoAdmin) {
     return (
-      <div className="min-h-screen bg-[#f6f3f7] text-gray-800 flex font-sans">
+      <div className="fixed inset-0 z-50 bg-[#f6f3f7] text-gray-800 flex font-sans overflow-hidden">
         {/* SIDEBAR */}
         <aside className="w-64 shrink-0 bg-gradient-to-b from-[#cd146e] to-[#7a1652] text-white flex flex-col">
           <div className="p-6 flex items-center gap-3 border-b border-white/15">
@@ -1171,6 +1464,9 @@ async function handleEliminarNoticia(id) {
               { key: 'banner-lateral', label: 'Banner Lateral do Blog', icon: '📌' },
               { key: 'sobre-historia', label: 'Nossa História (Sobre Nós)', icon: '📖' },
               { key: 'cursos-cadastrados', label: 'Cursos (Cards)', icon: '📚' },
+              { key: 'contato', label: 'Contato e Redes Sociais', icon: '📞' },
+              { key: 'destaques-sobre', label: 'Destaques (Sobre Nós)', icon: '⭐' },
+              { key: 'redes-sobre', label: 'Redes Sociais (Sobre Nós)', icon: '📱' },
             ].map((item) => (
               <button
                 key={item.key}
@@ -1212,6 +1508,9 @@ async function handleEliminarNoticia(id) {
                   'banner-lateral': 'Banner Lateral do Blog',
                   'sobre-historia': 'Nossa História (Sobre Nós)',
                   'cursos-cadastrados': 'Cursos (Cards)',
+                  contato: 'Contato e Redes Sociais',
+                  'destaques-sobre': 'Destaques (Sobre Nós)',
+                  'redes-sobre': 'Redes Sociais (Sobre Nós)',
                 }[abaAdmin]} <span>✨</span>
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">Administrador LaTec</p>
@@ -1423,7 +1722,7 @@ async function handleEliminarNoticia(id) {
                 {noticiaEditando && (
                   <button 
                     type="button" 
-                    onClick={() => { setNoticiaEditando(null); setEditTitulo(""); setEditResumo(""); setEditTempoLeitura(""); setEditDestaque(false); }}
+                    onClick={() => { setNoticiaEditando(null); setEditTitulo(""); setEditResumo(""); setEditCorpo(""); setEditTempoLeitura(""); setEditDestaque(false); }}
                     className="text-[10px] uppercase bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-md font-bold transition-colors"
                   >
                     Cancelar
@@ -1444,13 +1743,23 @@ async function handleEliminarNoticia(id) {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Breve Resumo</label>
-                  <textarea 
+                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Subtítulo</label>
+                  <textarea
                     rows="3"
-                    value={noticiaEditando ? editResumo : novoResumoNoticia} 
-                    onChange={(e) => noticiaEditando ? setEditResumo(e.target.value) : setNovoResumoNoticia(e.target.value)} 
-                    placeholder="Ex: Inscrições abertas..." 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white resize-none" 
+                    value={noticiaEditando ? editResumo : novoResumoNoticia}
+                    onChange={(e) => noticiaEditando ? setEditResumo(e.target.value) : setNovoResumoNoticia(e.target.value)}
+                    placeholder="Ex: Inscrições abertas..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Corpo da Notícia</label>
+                  <textarea
+                    rows="8"
+                    value={noticiaEditando ? editCorpo : novoCorpoNoticia}
+                    onChange={(e) => noticiaEditando ? setEditCorpo(e.target.value) : setNovoCorpoNoticia(e.target.value)}
+                    placeholder="Texto completo da matéria..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white resize-none"
                   />
                 </div>
                 <div>
@@ -1519,9 +1828,16 @@ async function handleEliminarNoticia(id) {
                     
                     {/* BOTÕES DE AÇÃO: EDITAR E EXCLUIR */}
                     <div className="flex flex-col gap-2 shrink-0">
-              
-                      <button 
-                        onClick={() => handleEliminarNoticia(n.id)} 
+
+                      <button
+                        onClick={() => iniciarEdicaoNoticia(n)}
+                        className="bg-amber-500 hover:bg-amber-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
+                        title="Editar Notícia"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => handleEliminarNoticia(n.id)}
                         className="bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
                         title="Excluir Notícia"
                       >
@@ -1988,6 +2304,231 @@ async function handleEliminarNoticia(id) {
               </div>
             )}
 
+            {abaAdmin === 'contato' && (
+              <div className="flex flex-col gap-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-3xl">
+                  <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Contato e Localização</h3>
+                  <p className="text-xs text-gray-400 mb-6">Essas informações aparecem no rodapé de todas as páginas do site.</p>
+                  <form onSubmit={handleSalvarContatoFooter} className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Endereço (linha 1)</label>
+                        <input
+                          type="text"
+                          name="endereco_linha1"
+                          value={contatoFooterForm.endereco_linha1}
+                          onChange={handleContatoFooterChange}
+                          placeholder="Av. Principal, 123 - Centro"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Endereço (linha 2)</label>
+                        <input
+                          type="text"
+                          name="endereco_linha2"
+                          value={contatoFooterForm.endereco_linha2}
+                          onChange={handleContatoFooterChange}
+                          placeholder="Cidade - UF - CEP 00000-000"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Telefone (texto exibido)</label>
+                        <input
+                          type="text"
+                          name="telefone"
+                          value={contatoFooterForm.telefone}
+                          onChange={handleContatoFooterChange}
+                          placeholder="(27) 99839-2172"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Número do WhatsApp (só dígitos, com DDI+DDD)</label>
+                        <input
+                          type="text"
+                          name="whatsapp_numero"
+                          value={contatoFooterForm.whatsapp_numero}
+                          onChange={handleContatoFooterChange}
+                          placeholder="5527998392172"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">E-mail</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={contatoFooterForm.email}
+                        onChange={handleContatoFooterChange}
+                        placeholder="contato@escolalatec.com.br"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                      />
+                    </div>
+
+                    <h3 className="text-base font-black uppercase text-gray-900 mt-2 mb-1 tracking-wide">Redes Sociais</h3>
+                    <p className="text-xs text-gray-400 mb-1">Links dos ícones sociais exibidos no rodapé.</p>
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Instagram (URL)</label>
+                      <input
+                        type="url"
+                        name="instagram_url"
+                        value={contatoFooterForm.instagram_url}
+                        onChange={handleContatoFooterChange}
+                        placeholder="https://instagram.com/escolalatec"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Facebook (URL)</label>
+                      <input
+                        type="url"
+                        name="facebook_url"
+                        value={contatoFooterForm.facebook_url}
+                        onChange={handleContatoFooterChange}
+                        placeholder="https://facebook.com/escolalatec"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">LinkedIn (URL)</label>
+                      <input
+                        type="url"
+                        name="linkedin_url"
+                        value={contatoFooterForm.linkedin_url}
+                        onChange={handleContatoFooterChange}
+                        placeholder="https://linkedin.com/company/escolalatec"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer mt-2"
+                    >
+                      💾 Salvar Contato e Redes Sociais
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {abaAdmin === 'destaques-sobre' && (
+              <div className="flex flex-col gap-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-3xl">
+                  <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Destaques da Página Sobre Nós</h3>
+                  <p className="text-xs text-gray-400 mb-6">
+                    Imagem central e os 8 tópicos exibidos ao redor dela (4 à esquerda, 4 à direita), na seção logo abaixo de "Nossa História".
+                  </p>
+                  <form onSubmit={handleSalvarDestaquesSobre} className="flex flex-col gap-4">
+                    <div>
+                      <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Imagem Central</label>
+                      {destaquesSobreForm.imagem_url && (
+                        <img src={destaquesSobreForm.imagem_url} alt="Prévia" className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" />
+                      )}
+                      <input
+                        type="file"
+                        id="imagem-destaques-sobre"
+                        accept="image/*"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
+                      <div className="flex flex-col gap-3">
+                        <h4 className="text-xs font-black uppercase text-gray-500 tracking-wider">Tópicos à Esquerda</h4>
+                        {[1, 2, 3, 4].map((n) => (
+                          <input
+                            key={`esquerda_${n}`}
+                            type="text"
+                            name={`esquerda_${n}`}
+                            value={destaquesSobreForm[`esquerda_${n}`]}
+                            onChange={handleDestaquesSobreChange}
+                            placeholder={`Tópico ${n} (esquerda)`}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <h4 className="text-xs font-black uppercase text-gray-500 tracking-wider">Tópicos à Direita</h4>
+                        {[1, 2, 3, 4].map((n) => (
+                          <input
+                            key={`direita_${n}`}
+                            type="text"
+                            name={`direita_${n}`}
+                            value={destaquesSobreForm[`direita_${n}`]}
+                            onChange={handleDestaquesSobreChange}
+                            placeholder={`Tópico ${n} (direita)`}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer mt-2"
+                    >
+                      💾 Salvar Destaques
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {abaAdmin === 'redes-sobre' && (
+              <div className="flex flex-col gap-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-3xl">
+                  <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Acompanhe a LATec (Redes Sociais)</h3>
+                  <p className="text-xs text-gray-400 mb-6">
+                    Seção com prévias das redes sociais, exibida acima do vídeo institucional na página Sobre Nós.
+                  </p>
+                  <form onSubmit={handleSalvarRedesSociaisSobre} className="flex flex-col gap-6">
+                    {REDES_SOCIAIS_SOBRE_CONFIG.map(({ key, label }) => (
+                      <div key={key} className="border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+                        <h4 className="text-xs font-black uppercase text-gray-700 tracking-wider">{label}</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-4 items-start">
+                          <div>
+                            {redesSociaisSobreForm[`${key}_imagem`] && (
+                              <img src={redesSociaisSobreForm[`${key}_imagem`]} alt={`Prévia ${label}`} className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" />
+                            )}
+                            <input
+                              type="file"
+                              id={`imagem-rede-${key}`}
+                              accept="image/*"
+                              className="w-24 text-[10px] text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-2 file:py-1 file:text-[10px] file:font-bold cursor-pointer"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Link ({label})</label>
+                            <input
+                              type="url"
+                              name={`${key}_link`}
+                              value={redesSociaisSobreForm[`${key}_link`]}
+                              onChange={handleRedesSociaisSobreChange}
+                              placeholder={`https://...`}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="submit"
+                      className="w-full bg-[#cd146e] hover:bg-[#a61058] text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition-colors cursor-pointer mt-2"
+                    >
+                      💾 Salvar Redes Sociais
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
           </main>
         </div>
       </div>
@@ -2106,39 +2647,37 @@ async function handleEliminarNoticia(id) {
       <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">Por que escolher o LATec para impulsionar o seu futuro profissional?</p>
     </div>
     <div className="w-full flex flex-col items-center">
-      <div className="w-full min-h-[320px] flex items-center justify-center relative overflow-hidden px-2 py-6 gap-3 md:gap-6">
+      <div className="w-full min-h-[460px] flex items-center justify-center relative overflow-hidden px-2 py-10 md:py-14 gap-4 md:gap-8">
         {[0, 1, 2, 3, 4].map((posicaoFisica) => {
           const itemData = obterDadoDoCard(posicaoFisica);
           if (!itemData) return null;
           let estiloDestaque = posicaoFisica === 2 ? "scale-110 md:scale-115 opacity-100 z-30 shadow-2xl ring-4 ring-[#cd146e]/100" : (posicaoFisica === 1 || posicaoFisica === 3 ? "opacity-40 scale-95 z-20 shadow-md" : "opacity-10 scale-85 z-10 hidden sm:flex");
-          
+
           // 🚨 SEGURANÇA: Garante que vai pegar a URL da imagem não importa o nome da coluna no banco
           const urlImagem = itemData.fotoUrl || itemData.imagem_url || itemData.foto_url;
 
           return (
-            <div 
-              key={`card-fisico-${posicaoFisica}`} 
+            <div
+              key={`card-fisico-${posicaoFisica}`}
               style={{ backgroundImage: `url('${urlImagem}')` }} // <-- Adicionadas aspas simples para proteger URLs complexas
-              className={`w-[18%] min-w-[200px] md:min-w-[250px] h-[300px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-5 overflow-hidden ${estiloDestaque}`}
+              className={`w-[22%] min-w-[260px] md:min-w-[320px] h-[380px] rounded-2xl relative bg-cover bg-center transition-all duration-500 ease-in-out transform flex flex-col justify-end p-6 overflow-hidden ${estiloDestaque}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10"></div>
               <div className="relative z-20 text-left pl-1 pr-2 pb-1">
-                <h4 className="text-white text-sm md:text-base font-extrabold tracking-wide leading-snug uppercase">{itemData.titulo}</h4>
+                <h4 className="text-white text-base md:text-lg font-extrabold tracking-wide leading-snug uppercase">{itemData.titulo}</h4>
               </div>
             </div>
           );
         })}
       </div>
-      <div className="flex justify-between items-center w-full max-w-xs mt-6 px-4">
-        <div className="flex gap-1.5">
+      <div className="flex justify-center items-center gap-5 mt-8">
+        <button onClick={irParaEsquerda} className="w-12 h-12 rounded-full bg-[#cd146e] hover:bg-[#a61058] text-white flex items-center justify-center shadow-lg transition-all cursor-pointer font-bold text-lg shrink-0">&#10094;</button>
+        <div className="flex gap-2">
           {listaDiferenciais.map((_, idx) => (
-            <span key={idx} className={`h-2 rounded-full transition-all duration-300 ${idx === indiceAtivo ? 'w-5 bg-[#cd146e]' : 'w-2 bg-gray-300'}`} />
+            <span key={idx} className={`h-2.5 rounded-full transition-all duration-300 ${idx === indiceAtivo ? 'w-6 bg-[#cd146e]' : 'w-2.5 bg-gray-300'}`} />
           ))}
         </div>
-        <div className="flex gap-2">
-          <button onClick={irParaEsquerda} className="w-10 h-10 rounded-full bg-gray-900 hover:bg-[#cd146e] text-white flex items-center justify-center shadow transition-all cursor-pointer font-bold z-40">&#10094;</button>
-          <button onClick={irParaDireita} className="w-10 h-10 rounded-full bg-gray-900 hover:bg-[#cd146e] text-white flex items-center justify-center shadow transition-all cursor-pointer font-bold z-40">&#10095;</button>
-        </div>
+        <button onClick={irParaDireita} className="w-12 h-12 rounded-full bg-[#cd146e] hover:bg-[#a61058] text-white flex items-center justify-center shadow-lg transition-all cursor-pointer font-bold text-lg shrink-0">&#10095;</button>
       </div>
     </div>
   </div>
@@ -2424,6 +2963,116 @@ async function handleEliminarNoticia(id) {
     </div>
   </div>
 </section>
+
+      {/* --- SEÇÃO: FORMULÁRIO DE CONTATO --- */}
+      <section className="relative py-16 md:py-20 bg-black w-full overflow-hidden">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
+              Fale com a <span className="text-[#cd146e]">LATec</span>
+            </h2>
+            <p className="text-gray-500 text-sm md:text-base font-medium">
+              Preencha o formulário abaixo e nossa equipe entrará em contato com você pelo WhatsApp.
+            </p>
+          </div>
+
+          {contatoStatus === 'sucesso' && (
+            <div className="w-full bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Perfeito! Abrimos o WhatsApp com sua mensagem pronta para enviar.
+            </div>
+          )}
+
+          {contatoStatus === 'erro' && (
+            <div className="w-full bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Preencha ao menos o nome, e-mail e mensagem antes de enviar.
+            </div>
+          )}
+
+          <div className="w-full bg-[#F8F9FA] rounded-[2rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.4)] border border-gray-100 p-8 md:p-10">
+            <form onSubmit={handleContatoSubmit} className="flex flex-col gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2">
+                    Nome Completo <span className="text-[#cd146e]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="nome"
+                    value={contatoForm.nome}
+                    onChange={handleContatoChange}
+                    placeholder="Seu nome completo"
+                    required
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2">
+                    E-mail <span className="text-[#cd146e]">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={contatoForm.email}
+                    onChange={handleContatoChange}
+                    placeholder="seu@email.com"
+                    required
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2">Telefone</label>
+                  <input
+                    type="tel"
+                    name="telefone"
+                    value={contatoForm.telefone}
+                    onChange={handleContatoChange}
+                    placeholder="(00) 00000-0000"
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-2">Curso Desejado</label>
+                  <input
+                    type="text"
+                    name="curso"
+                    value={contatoForm.curso}
+                    onChange={handleContatoChange}
+                    placeholder="Ex: Técnico em Enfermagem"
+                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-2">
+                  Mensagem <span className="text-[#cd146e]">*</span>
+                </label>
+                <textarea
+                  name="mensagem"
+                  value={contatoForm.mensagem}
+                  onChange={handleContatoChange}
+                  placeholder="Como podemos te ajudar?"
+                  required
+                  rows={5}
+                  className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#cd146e] to-[#a61058] hover:from-[#a61058] hover:to-[#8a0d49] text-white font-black text-sm uppercase tracking-wider py-4 rounded-2xl shadow-lg shadow-[#cd146e]/20 transition-all cursor-pointer active:scale-[0.99]"
+              >
+                Enviar Mensagem
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
 
     </div>
   );

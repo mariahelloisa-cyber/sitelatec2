@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 // Importação dos componentes globais
-import Footer from './components/Footer'; 
+import Footer from './components/Footer';
 import CarrinhoSidebar from './components/CarrinhoSidebar';
+import WhatsappFloatButton from './components/WhatsappFloatButton';
 
 // Importação das tuas páginas
 import Inicio from './pages/Inicio';
@@ -25,6 +26,7 @@ function LayoutGlobal() {
   return (
     <>
       <CarrinhoSidebar />
+      <WhatsappFloatButton />
 
       <Routes>
         <Route path="/" element={<Inicio />} />

@@ -19,7 +19,6 @@ export default function Navbar() {
           {/* 👇 AQUI ESTÁ O NOVO BOTÃO ADMIN 👇 */}
           <div className="flex items-center gap-5">
             <Link to="/login" className="font-bold hover:underline text-white/80 hover:text-white transition-colors">Admin</Link>
-            <a href="#" className="font-bold hover:underline">AVA do Aluno</a>
           </div>
           {/* 👆 ============================= 👆 */}
 

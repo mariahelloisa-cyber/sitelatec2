@@ -2764,7 +2764,7 @@ async function handleEliminarNoticia(id) {
       {/* --- SEÇÃO: TEXTO DE PARTÍCULAS (LATEC) --- */}
       <div className="w-full bg-white overflow-hidden">
         <div className="w-full h-[180px] md:h-[260px]">
-          <ParticleText colors={['#cd146e', '#4690D1']} fontSize={150} style={{ minWidth: 0 }} />
+          <ParticleText colors={['#cd146e', '#4690D1']} fontSize={150} replay={false} style={{ minWidth: 0 }} />
         </div>
       </div>
 

@@ -3,8 +3,8 @@ import logo from '../assets/logolatec.png';
 import { supabase } from '../supabaseClient';
 
 const CONTATO_PADRAO = {
-  endereco_linha1: 'Av. Principal, 123 - Centro',
-  endereco_linha2: 'Cidade - UF - CEP 00000-000',
+  endereco_linha1: 'Rua Flor de Maio, 376',
+  endereco_linha2: 'Bairro Jardins - Aracruz-ES - CEP 29190-353',
   telefone: '(27) 99839-2172',
   whatsapp_numero: '5527998392172',
   email: 'contato@escolalatec.com.br',
@@ -61,7 +61,7 @@ export default function Footer() {
           <div className="md:col-span-4 flex flex-col gap-3">
             <img src={logo} alt="LATec Escola Técnica" className="h-14 w-auto object-contain -ml-2" />
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-              Transformando a educação através da tecnologia e inovação técnica profissionalizante.
+              Mais que ensino técnico. É futuro construído com propósito.
             </p>
             <div className="flex items-center gap-2.5">
               <a href={contato.instagram_url || '#'} target="_blank" rel="noreferrer" aria-label="Instagram" className="w-8 h-8 rounded-full border border-[#cd146e]/40 text-[#cd146e] flex items-center justify-center hover:bg-[#cd146e] hover:text-white hover:border-[#cd146e] transition-colors">

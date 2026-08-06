@@ -265,7 +265,7 @@ export default function Sobre() {
                 Veja aqui a história da <span className="text-[#cd146e]">LATec</span>
               </h1>
               <p className="text-gray-500 text-base md:text-xl leading-relaxed mb-8 max-w-lg">
-                Escolher onde estudar é também escolher como você quer se preparar para o futuro.
+                Aqui, o campus é digital e cabe no bolso: você estuda onde e quando quiser, com certificação reconhecida e suporte humanizado ao seu lado.
               </p>
               <a
                 href="#historia"
@@ -330,13 +330,13 @@ export default function Sobre() {
             {/* Parágrafos de Conteúdo */}
             <div className="space-y-6 text-gray-700 text-sm md:text-[15px] font-medium leading-relaxed max-w-xl">
               <p>
-                A <strong className="text-gray-900 font-bold">LA Tec</strong> nasceu com a missão de tornar a educação técnica mais acessível, moderna e conectada às necessidades do mercado de trabalho. Integrante do Grupo LA Educação e sediada em <strong className="text-gray-900 font-bold">Aracruz-ES</strong>, a instituição foi criada para contribuir com o desenvolvimento econômico e social da região por meio da formação de profissionais qualificados.
+                A <strong className="text-gray-900 font-bold">LATec</strong> é uma Escola Técnica sediada em <strong className="text-gray-900 font-bold">Aracruz-ES</strong>, integrante do Grupo LA Educação. Seu principal objetivo é contribuir para o desenvolvimento econômico da região, fornecendo mão de obra qualificada para as indústrias locais. Não somos apenas uma escola técnica, mas uma ponte entre os sonhos dos alunos e as necessidades do mercado — transformamos vidas e impulsionamos o crescimento de Aracruz e do Espírito Santo.
               </p>
               <p>
-                Desde o início, acreditamos que a educação deve ser uma ponte entre os sonhos dos alunos e as oportunidades profissionais. Por isso, desenvolvemos uma metodologia de ensino a distância que combina flexibilidade, tecnologia e suporte humanizado, permitindo que cada estudante aprenda no seu próprio ritmo e alcance seus objetivos com mais facilidade.
+                Sob a liderança do empresário educacional <strong className="text-gray-900 font-bold">Fredison Carneiro</strong>, a LATec consolidou uma abordagem inovadora, unindo tecnologia, acessibilidade e excelência acadêmica. Nossa missão é formar profissionais qualificados com ensino acessível, tecnológico e voltado para as demandas da indústria e do comércio, contribuindo para o desenvolvimento econômico e social do Espírito Santo e do Brasil.
               </p>
               <p>
-                Hoje, a <strong className="text-gray-900 font-bold">LA Tec</strong> segue transformando vidas através da educação técnica, oferecendo cursos alinhados às demandas do mercado e preparando profissionais para construir careers sólidas e um futuro promissor.
+                Nossa visão é ser reconhecida pelos alunos e empresários da indústria como a principal referência em educação técnica de qualidade no Espírito Santo, contribuindo ativamente para a transformação social da região. Hoje, a <strong className="text-gray-900 font-bold">LA Tec</strong> segue transformando vidas através da educação técnica, preparando profissionais para construir carreiras sólidas e um futuro promissor.
               </p>
             </div>
           </div>
@@ -390,7 +390,7 @@ export default function Sobre() {
             Por que escolher a <span className="text-[#cd146e]">LATec</span>
           </h2>
           <p className="text-gray-500 font-medium text-base md:text-lg max-w-xl mx-auto">
-            Tudo o que torna a nossa experiência de ensino única para você.
+            Educação acessível e certificação reconhecida pelo MEC para impulsionar a sua carreira.
           </p>
         </div>
 
@@ -501,7 +501,7 @@ export default function Sobre() {
         <div className="bg-[#cd146e]/10 rounded-[48px] py-16 px-6 md:px-12 flex flex-col items-center text-center w-full">
           
           <span className="text-[#cd146e] text-xs font-black tracking-widest uppercase mb-4">
-            Educação acessível, inovação digital e compromisso com o seu futuro.
+            Mais que ensino técnico. É futuro construído com propósito.
           </span>
 
           <h2 className="text-3xl md:text-5xl font-black text-[#0f172a] mb-6 tracking-tight max-w-2xl">

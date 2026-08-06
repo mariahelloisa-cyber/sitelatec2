@@ -3123,12 +3123,12 @@ async function handleEliminarNoticia(id) {
           <div className="relative w-full overflow-hidden flex bg-white py-2">
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-20 md:h-28 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
 ))}
             </div>
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-20 md:h-28 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
 ))}
             </div>
           </div>
@@ -3507,13 +3507,13 @@ async function handleEliminarNoticia(id) {
 </section>
 
       {/* --- SEÇÃO: FORMULÁRIO DE CONTATO --- */}
-      <section className="relative py-16 md:py-20 bg-black w-full overflow-hidden">
+      <section className="relative py-16 md:py-20 bg-[#cd146e] w-full overflow-hidden">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">
-              Fale com a <span className="text-[#cd146e]">LATec</span>
+              Fale com a <span className="text-black">LATec</span>
             </h2>
-            <p className="text-gray-500 text-sm md:text-base font-medium">
+            <p className="text-white/85 text-sm md:text-base font-medium">
               Preencha o formulário abaixo e nossa equipe entrará em contato com você pelo WhatsApp.
             </p>
           </div>
@@ -3532,7 +3532,7 @@ async function handleEliminarNoticia(id) {
             </div>
           )}
 
-          <div className="w-full bg-[#F8F9FA] rounded-[2rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.4)] border border-gray-100 p-8 md:p-10">
+          <div className="w-full bg-white rounded-[2rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.5)] border border-white/20 p-8 md:p-10">
             <form onSubmit={handleContatoSubmit} className="flex flex-col gap-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -3546,7 +3546,7 @@ async function handleEliminarNoticia(id) {
                     onChange={handleContatoChange}
                     placeholder="Seu nome completo"
                     required
-                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/15 focus:border-[#cd146e] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -3561,7 +3561,7 @@ async function handleEliminarNoticia(id) {
                     onChange={handleContatoChange}
                     placeholder="seu@email.com"
                     required
-                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/15 focus:border-[#cd146e] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -3573,7 +3573,7 @@ async function handleEliminarNoticia(id) {
                     value={contatoForm.telefone}
                     onChange={handleContatoChange}
                     placeholder="(00) 00000-0000"
-                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/15 focus:border-[#cd146e] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -3585,7 +3585,7 @@ async function handleEliminarNoticia(id) {
                     value={contatoForm.curso}
                     onChange={handleContatoChange}
                     placeholder="Ex: Técnico em Enfermagem"
-                    className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/15 focus:border-[#cd146e] focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -3601,7 +3601,7 @@ async function handleEliminarNoticia(id) {
                   placeholder="Como podemos te ajudar?"
                   required
                   rows={5}
-                  className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/10 focus:border-[#cd146e] transition-all resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#cd146e]/15 focus:border-[#cd146e] focus:bg-white transition-all resize-none"
                 />
               </div>
 

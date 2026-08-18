@@ -27,13 +27,6 @@ export default function Navbar() {
             <span>Central do Aluno: +55 (27) 99839-2172</span>
             <span>Central Comercial do Licenciado: +55 (27) 99839-2172</span>
           </div>
-          
-          {/* 👇 AQUI ESTÁ O NOVO BOTÃO ADMIN 👇 */}
-          <div className="flex items-center gap-5">
-            <Link to="/login" className="font-bold hover:underline text-white/80 hover:text-white transition-colors">Admin</Link>
-          </div>
-          {/* 👆 ============================= 👆 */}
-
         </div>
       </div>
 

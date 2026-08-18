@@ -73,6 +73,9 @@ export default function Footer() {
               <a href={`https://wa.me/${contato.whatsapp_numero}`} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="w-8 h-8 rounded-full border border-[#cd146e]/40 text-[#cd146e] flex items-center justify-center hover:bg-[#cd146e] hover:text-white hover:border-[#cd146e] transition-colors">
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.004 2C6.49 2 2.007 6.483 2.007 11.997c0 1.762.462 3.484 1.34 5.003L2 22l5.126-1.341a9.958 9.958 0 004.878 1.242h.004c5.514 0 9.997-4.483 9.997-9.997C21.997 6.483 17.518 2 12.004 2zm0 18.16h-.003a8.16 8.16 0 01-4.158-1.138l-.298-.177-3.043.796.812-2.966-.194-.305a8.15 8.15 0 01-1.253-4.373c0-4.506 3.667-8.173 8.176-8.173 2.184 0 4.238.851 5.783 2.397a8.126 8.126 0 012.394 5.784c0 4.507-3.667 8.155-8.216 8.155z" /></svg>
               </a>
+              <a href="/login" aria-label="Área administrativa" title="Área administrativa" className="w-8 h-8 rounded-full border border-gray-300 text-gray-400 flex items-center justify-center hover:bg-gray-700 hover:text-white hover:border-gray-700 transition-colors">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.75l7.25 3.25v5.25c0 4.73-3.11 8.94-7.25 10.25-4.14-1.31-7.25-5.52-7.25-10.25V6l7.25-3.25z" /></svg>
+              </a>
             </div>
           </div>
 

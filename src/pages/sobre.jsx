@@ -256,7 +256,7 @@ export default function Sobre() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
 
             {/* TEXTO + CTA */}
-            <div className="lg:col-span-6 pb-10 md:pb-14 relative z-10">
+            <div className="order-2 lg:order-1 lg:col-span-6 pb-10 md:pb-14 relative z-10">
               <div className="inline-flex items-center gap-2 mb-3">
                 <span className="w-2.5 h-2.5 bg-[#cd146e] rounded-sm shrink-0"></span>
                 <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Sobre Nós</span>
@@ -279,7 +279,7 @@ export default function Sobre() {
             </div>
 
             {/* FOTO (telas menores que lg, dentro do fluxo normal) */}
-            <div className="lg:hidden flex justify-center">
+            <div className="order-1 lg:order-2 lg:hidden flex justify-center">
               <div className="relative w-full max-w-[340px]">
                 <div className="absolute -right-3 top-6 bottom-0 w-2/3 bg-[#cd146e]/15 rounded-2xl -z-10"></div>
                 <img src={fotoHeroSobre} alt="Aluna LATec" className="w-full h-auto object-contain" />

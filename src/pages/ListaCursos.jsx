@@ -12,6 +12,7 @@ export default function ListaCursos() {
   const [searchParams] = useSearchParams();
   const [pesquisa, setPesquisa] = useState(() => searchParams.get('busca') || '');
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todas');
+  const [filtroCategoriaAberto, setFiltroCategoriaAberto] = useState(false);
   const adicionarAoCarrinho = useCartStore((state) => state.adicionarAoCarrinho);
   const carrinho = useCartStore((state) => state.carrinho);
   const setCarrinhoAberto = useCartStore((state) => state.setCarrinhoAberto);
@@ -220,8 +221,8 @@ export default function ListaCursos() {
       {/* 2. FILTROS E CONTEÚDO */}
       <div className="max-w-6xl w-full mx-auto px-6 mt-10">
         
-        {/* Abas de Categorias */}
-        <div className="flex flex-wrap gap-3 mb-6 justify-start">
+        {/* Abas de Categorias (desktop): todas as pills lado a lado */}
+        <div className="hidden md:flex flex-wrap gap-3 mb-6 justify-start">
           {categoriasFiltro.map((cat) => {
             const isSelected = categoriaSelecionada.toLowerCase() === cat.toLowerCase();
             return (
@@ -239,6 +240,64 @@ export default function ListaCursos() {
               </button>
             );
           })}
+        </div>
+
+        {/* Abas de Categorias (mobile): "Todas" + botão que abre a lista de categorias */}
+        <div className="md:hidden mb-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setCategoriaSelecionada('Todas'); setFiltroCategoriaAberto(false); }}
+              className={`px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer shrink-0 ${
+                categoriaSelecionada.toLowerCase() === 'todas'
+                  ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
+                  : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {getCategoriaIcon('Todas')}
+              <span>Todas</span>
+            </button>
+
+            <button
+              onClick={() => setFiltroCategoriaAberto((v) => !v)}
+              className={`flex-1 min-w-0 px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-200 border flex items-center justify-center gap-2 cursor-pointer ${
+                categoriaSelecionada.toLowerCase() !== 'todas'
+                  ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
+                  : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 9h12M10 15h4" />
+              </svg>
+              <span className="capitalize truncate">
+                {categoriaSelecionada.toLowerCase() === 'todas' ? 'Filtrar por categoria' : categoriaSelecionada}
+              </span>
+              <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${filtroCategoriaAberto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {filtroCategoriaAberto && (
+            <div className="mt-3 flex flex-wrap gap-2 bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+              {categoriasFiltro.filter((cat) => cat.toLowerCase() !== 'todas').map((cat) => {
+                const isSelected = categoriaSelecionada.toLowerCase() === cat.toLowerCase();
+                return (
+                  <button
+                    key={`btn-filtro-mobile-${cat}`}
+                    onClick={() => { setCategoriaSelecionada(cat); setFiltroCategoriaAberto(false); }}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
+                        : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {getCategoriaIcon(cat)}
+                    <span className="capitalize">{cat}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Quantidade Encontrada */}

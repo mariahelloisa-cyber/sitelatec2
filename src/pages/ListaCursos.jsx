@@ -277,7 +277,7 @@ export default function ListaCursos() {
           </div>
 
           {/* Listagem com Scroll Interno */}
-          <div className="flex flex-col max-h-[750px] overflow-y-auto bg-white">
+          <div className="flex flex-col max-h-[750px] overflow-y-auto bg-white md:divide-y md:divide-gray-100">
             {cursosFiltrados.length === 0 ? (
               <div className="p-12 text-center text-sm font-bold text-gray-400">
                 Nenhum curso corresponde à sua busca.
@@ -287,52 +287,52 @@ export default function ListaCursos() {
                 const nomeItem = curso.nome || curso.titulo || "Curso sem nome";
                 const precoItem = curso.preco || 0;
                 const horasItem = curso.horas || curso.duracao || "N/A";
-                
+
                 // Exibe o ID do curso vindo do banco ou gera uma numeração sequencial
                 const numeroFormatado = curso.id || String(index + 1).padStart(2, '0');
 
                 return (
                   <div
                     key={`linha-curso-${curso.id ?? index}-${index}`}
-                    className="flex flex-col md:flex-row items-start md:items-center justify-between py-4 px-6 border-b border-gray-100 hover:bg-gray-50/50 transition-colors gap-4 md:gap-0"
+                    className="flex flex-col md:flex-row items-start md:items-center justify-between py-2.5 px-3 md:py-4 md:px-6 mx-2 my-1 md:mx-0 md:my-0 rounded-xl md:rounded-none border border-gray-100 md:border-0 bg-white hover:bg-gray-50/50 transition-colors gap-1.5 md:gap-0"
                   >
                     {/* Numeração em Destaque Rosa + Título Escuro */}
-                    <div className="flex items-center gap-4 flex-1">
-                      <span className="text-[#cd146e] font-extrabold text-sm w-10 text-center shrink-0">
+                    <div className="flex items-center gap-2.5 md:gap-4 flex-1 min-w-0">
+                      <span className="text-[#cd146e] font-extrabold text-xs md:text-sm w-7 md:w-10 text-center shrink-0">
                         {numeroFormatado}
                       </span>
-                      <h3 className="text-xs md:text-sm font-extrabold text-[#1a103c] uppercase tracking-wide leading-tight">
+                      <h3 className="text-[11px] md:text-sm font-extrabold text-[#1a103c] uppercase tracking-wide leading-tight truncate">
                         {nomeItem}
                       </h3>
                     </div>
 
                     {/* Lado Direito: Horas, Preço e Ação */}
                     <div className="flex items-center justify-between w-full md:w-auto md:gap-8 ml-0 md:ml-6 shrink-0">
-                      
+
                       {/* Badge das Horas (Roxo claro) */}
-                      <span className="text-[#7c3aed] font-bold text-[10px] bg-[#f3e8ff] px-2.5 py-1 rounded whitespace-nowrap">
+                      <span className="text-[#7c3aed] font-bold text-[9px] md:text-[10px] bg-[#f3e8ff] px-2 py-0.5 md:px-2.5 md:py-1 rounded whitespace-nowrap">
                         {typeof horasItem === 'number' ? `${horasItem}H` : String(horasItem).toUpperCase()}
                       </span>
 
                       {/* Preço em Azul Escuro */}
-                      <span className="text-[#1a103c] font-extrabold text-sm md:text-base whitespace-nowrap min-w-[90px] text-right">
+                      <span className="text-[#1a103c] font-extrabold text-xs md:text-base whitespace-nowrap min-w-[70px] md:min-w-[90px] text-right">
                         R$ {precoItem.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
 
                       {/* Botão de Compra Retangular Rosa */}
                        <button
   onClick={() => adicionarAoCarrinho({
-                    id: index, 
+                    id: index,
                     titulo: nomeItem,
                     preco: precoItem,
                     horas: horasItem
                   })}
-                  className="bg-[#cd146e] hover:bg-[#b0105e] text-white px-4 py-2 rounded font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-sm active:scale-95"
+                  className="bg-[#cd146e] hover:bg-[#b0105e] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer shrink-0 shadow-sm active:scale-95"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider">
+                  <span className="hidden md:inline text-[11px] font-extrabold uppercase tracking-wider">
                     COMPRAR
                   </span>
                 </button>

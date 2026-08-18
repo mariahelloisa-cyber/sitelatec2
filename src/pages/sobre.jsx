@@ -252,11 +252,11 @@ export default function Sobre() {
 
       {/* 1. SEÇÃO HERO */}
       <section className="relative w-full bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 pt-16 md:pt-20 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+        <div className="max-w-7xl mx-auto px-6 pt-6 md:pt-20 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 items-end">
 
             {/* TEXTO + CTA */}
-            <div className="order-2 lg:order-1 lg:col-span-6 pb-10 md:pb-14 relative z-10">
+            <div className="order-2 lg:order-1 lg:col-span-6 pb-4 md:pb-14 relative z-10">
               <div className="inline-flex items-center gap-2 mb-3">
                 <span className="w-2.5 h-2.5 bg-[#cd146e] rounded-sm shrink-0"></span>
                 <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Sobre Nós</span>
@@ -300,7 +300,7 @@ export default function Sobre() {
       </section>
 
       {/* 2. SEÇÃO HISTÓRIA (Ajustada com formas vetorizadas de alta definição e sem os pontos circulados) */}
-      <section id="historia" className="relative max-w-7xl mx-auto px-6 pt-24 pb-8 overflow-hidden">
+      <section id="historia" className="relative max-w-7xl mx-auto px-6 pt-8 md:pt-24 pb-8 overflow-hidden">
         
         {/* Padrão de Pontos Decorativos (Mantido apenas o do Canto Inferior Esquerdo) */}
         <div className="absolute bottom-12 left-2 pointer-events-none opacity-40 hidden md:block">

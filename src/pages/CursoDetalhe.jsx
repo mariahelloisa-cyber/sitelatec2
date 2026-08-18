@@ -120,10 +120,10 @@ function TituloSecao({ titulo, destaque, subtitulo }) {
 
 function CardBeneficio({ Icon, titulo, descricao }) {
   return (
-    <div className="aspect-square bg-gradient-to-br from-[#cd146e] to-[#6366f1] rounded-2xl p-5 text-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col overflow-hidden">
-      <Icon className="w-8 h-8 text-white mb-3 shrink-0 group-hover:scale-110 transition-transform duration-300" />
-      <h3 className="text-base font-black mb-1.5 shrink-0">{titulo}</h3>
-      <p className="text-sm font-medium text-white/90 leading-relaxed line-clamp-3">{descricao}</p>
+    <div className="sm:aspect-square bg-gradient-to-br from-[#cd146e] to-[#6366f1] rounded-2xl p-4 sm:p-5 text-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col overflow-hidden">
+      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white mb-1.5 sm:mb-3 shrink-0 group-hover:scale-110 transition-transform duration-300" />
+      <h3 className="text-sm sm:text-base font-black mb-1 sm:mb-1.5 shrink-0">{titulo}</h3>
+      <p className="text-xs sm:text-sm font-medium text-white/90 leading-relaxed line-clamp-3">{descricao}</p>
     </div>
   );
 }
@@ -398,7 +398,7 @@ export default function CursoDetalhe() {
                 subtitulo="Tudo o que você precisa para aprender com qualidade, do início ao certificado."
               />
             </AoRolar>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
               {BENEFICIOS.map((beneficio, idx) => (
                 <AoRolar key={beneficio.titulo} delayMs={idx * 80}>
                   <CardBeneficio Icon={beneficio.Icon} titulo={beneficio.titulo} descricao={beneficio.descricao} />
@@ -474,8 +474,8 @@ export default function CursoDetalhe() {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           {horasSemestre && (
-                            <span className="hidden sm:inline-flex items-center gap-1.5 bg-[#cd146e] text-white text-sm font-bold px-3 py-1.5 rounded-full">
-                              <ClockIcon className="w-4 h-4" />
+                            <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-[#cd146e] text-white text-[11px] sm:text-sm font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full whitespace-nowrap">
+                              <ClockIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               {horasSemestre}
                             </span>
                           )}

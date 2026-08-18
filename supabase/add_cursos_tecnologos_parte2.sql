@@ -1,5 +1,3 @@
--- Continuação: demais cursos "Tecnólogos" (gerado automaticamente a partir do CSV).
--- Mesma estrutura de add_cursos_eja.sql / add_cursos_tecnologos.sql.
 
 insert into public.cursos_cadastrados
   (titulo, descricao, categoria, preco, preco_original, duracao, carga_horaria, selo_mec, imagem_url, imagem_capa_url, grade_curricular, blocos_conteudo)

@@ -7,6 +7,9 @@ export default function CarrinhoSidebar() {
 
   const valorTotal = carrinho.reduce((total, item) => total + (item.precoOculto ? 0 : (item.preco || 0)), 0);
   const temItemSobConsulta = carrinho.some((item) => item.precoOculto);
+  const mensagemWhatsapp = encodeURIComponent(
+    `Olá! Quero saber o valor e finalizar a matrícula ${carrinho.length > 1 ? 'nos cursos' : 'no curso'}: ${carrinho.map((item) => item.titulo).join(', ')}.`
+  );
 
   if (!carrinhoAberto) return null;
 
@@ -118,15 +121,21 @@ export default function CarrinhoSidebar() {
             Cursos autorizados e reconhecidos pelo MEC
           </div>
 
-          {/* BOTÃO CORRIGIDO COM EVENTO DE CLIQUE (onClick) */}
-          <button 
+          {/* BOTÃO: WhatsApp direto quando há curso sob consulta, senão vai para o checkout */}
+          <button
             onClick={() => {
               setCarrinhoAberto(false); // Fecha o menu lateral
-              navigate('/checkout');    // Redireciona para o checkout criado
+              if (temItemSobConsulta) {
+                window.open(`https://wa.me/5527998392172?text=${mensagemWhatsapp}`, '_blank', 'noopener,noreferrer');
+              } else {
+                navigate('/checkout');
+              }
             }}
-            className="w-full bg-[#cd146e] hover:bg-[#b0105e] text-white py-4 rounded-2xl font-black uppercase tracking-wider flex items-center justify-between px-5 shadow-md shadow-pink-100 transition-all active:scale-[0.98] cursor-pointer"
+            className={`w-full text-white py-4 rounded-2xl font-black uppercase tracking-wider flex items-center justify-between px-5 shadow-md transition-all active:scale-[0.98] cursor-pointer ${
+              temItemSobConsulta ? 'bg-[#25D366] hover:bg-[#1ebe57]' : 'bg-[#cd146e] hover:bg-[#b0105e] shadow-pink-100'
+            }`}
           >
-            <span className="text-sm">Ir para o pagamento</span>
+            <span className="text-sm">{temItemSobConsulta ? 'Falar no WhatsApp' : 'Ir para o pagamento'}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
           </button>
 

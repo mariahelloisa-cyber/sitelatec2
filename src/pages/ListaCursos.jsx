@@ -365,17 +365,12 @@ export default function ListaCursos() {
                       </h3>
                     </div>
 
-                    {/* Lado Direito: Horas, Preço e Ação */}
-                    <div className="flex items-center justify-between w-full md:w-auto md:gap-8 ml-0 md:ml-6 shrink-0">
+                    {/* Lado Direito: Horas e Ação */}
+                    <div className="flex items-center justify-between w-full md:w-auto md:gap-4 ml-0 md:ml-6 shrink-0">
 
                       {/* Badge das Horas (Roxo claro) */}
                       <span className="text-[#7c3aed] font-bold text-[9px] md:text-[10px] bg-[#f3e8ff] px-2 py-0.5 md:px-2.5 md:py-1 rounded whitespace-nowrap">
                         {typeof horasItem === 'number' ? `${horasItem}H` : String(horasItem).toUpperCase()}
-                      </span>
-
-                      {/* Preço em Azul Escuro */}
-                      <span className="text-[#1a103c] font-extrabold text-xs md:text-base whitespace-nowrap min-w-[70px] md:min-w-[90px] text-right">
-                        R$ {precoItem.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
 
                       {/* Botão de Compra Retangular Rosa */}
@@ -384,7 +379,8 @@ export default function ListaCursos() {
                     id: index,
                     titulo: nomeItem,
                     preco: precoItem,
-                    horas: horasItem
+                    horas: horasItem,
+                    precoOculto: true
                   })}
                   className="bg-[#cd146e] hover:bg-[#b0105e] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer shrink-0 shadow-sm active:scale-95"
                 >

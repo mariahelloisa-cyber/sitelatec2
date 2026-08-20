@@ -5,7 +5,8 @@ export default function CarrinhoSidebar() {
   const { carrinho, carrinhoAberto, setCarrinhoAberto, removerDoCarrinho } = useCartStore();
   const navigate = useNavigate(); // <-- ADICIONEI ESSA LINHA PARA ENCONTRAR AS ROTAS
 
-  const valorTotal = carrinho.reduce((total, item) => total + (item.preco || 0), 0);
+  const valorTotal = carrinho.reduce((total, item) => total + (item.precoOculto ? 0 : (item.preco || 0)), 0);
+  const temItemSobConsulta = carrinho.some((item) => item.precoOculto);
 
   if (!carrinhoAberto) return null;
 
@@ -59,8 +60,16 @@ export default function CarrinhoSidebar() {
                     ⏱️ {item.horas}h
                   </div>
                   <div className="mt-2">
-                    <span className="text-base font-black text-[#cd146e]">R$ {item.preco?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                    <span className="text-gray-400 text-[10px] block font-medium">ou 12x de R$ {(item.preco / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    {item.precoOculto ? (
+                      <span className="inline-flex items-center bg-gray-100 text-gray-500 text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
+                        Sob consulta
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-base font-black text-[#cd146e]">R$ {item.preco?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-gray-400 text-[10px] block font-medium">ou 12x de R$ {(item.preco / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -83,7 +92,11 @@ export default function CarrinhoSidebar() {
           <div className="space-y-1.5 text-xs font-semibold text-gray-500">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="text-[#1a103c] font-bold">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              {temItemSobConsulta ? (
+                <span className="text-gray-500 font-bold uppercase text-[11px]">Sob consulta</span>
+              ) : (
+                <span className="text-[#1a103c] font-bold">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              )}
             </div>
             <div className="flex justify-between">
               <span>Matrícula + Certificado</span>
@@ -93,7 +106,11 @@ export default function CarrinhoSidebar() {
 
           <div className="bg-[#FDF2F7] rounded-xl p-4 flex justify-between items-center">
             <span className="text-sm font-black text-[#1a103c] uppercase tracking-wider">Total</span>
-            <span className="text-xl font-black text-[#cd146e]">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+            {temItemSobConsulta ? (
+              <span className="text-sm font-black text-[#cd146e] uppercase">Sob consulta</span>
+            ) : (
+              <span className="text-xl font-black text-[#cd146e]">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+            )}
           </div>
 
           <div className="flex items-center justify-center gap-1.5 text-[#cd146e] text-xs font-bold bg-pink-50/50 py-1.5 rounded-lg">

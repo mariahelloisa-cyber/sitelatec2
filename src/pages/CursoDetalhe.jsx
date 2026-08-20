@@ -71,10 +71,6 @@ function calcularHorasSemestre(disciplinas) {
   return temValor ? `${soma}h` : null;
 }
 
-function formatarPreco(valor) {
-  return (valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 // --- Envolve o conteúdo com um fade-in suave quando entra na tela ---
 function AoRolar({ children, className = '', delayMs = 0 }) {
   const ref = useRef(null);
@@ -160,7 +156,7 @@ function ItemFAQ({ pergunta, resposta, aberto, onToggle }) {
 }
 
 // --- Card de compra/inscrição: fica sticky ao lado do conteúdo no desktop ---
-function CardCompra({ curso, precoAtual, precoOriginal, valorParcela, percentualDesconto, onComprar }) {
+function CardCompra({ curso, onComprar }) {
   return (
     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
       <div className="relative w-full h-48 sm:h-52 bg-gray-800">
@@ -182,26 +178,24 @@ function CardCompra({ curso, precoAtual, precoOriginal, valorParcela, percentual
       </div>
 
       <div className="p-6">
-        {percentualDesconto && (
-          <span className="inline-block bg-[#cd146e] text-white text-xs font-black px-3 py-1.5 rounded-full mb-4">
-            {percentualDesconto}% de desconto
-          </span>
-        )}
-
         <h3 className="text-lg font-black text-gray-900 mb-4 leading-snug">{curso.titulo}</h3>
 
-        {precoOriginal && (
-          <p className="text-gray-400 text-sm mb-0.5">
-            De <span className="line-through">R$ {formatarPreco(precoOriginal)}</span>
-          </p>
-        )}
-        <p className="text-gray-500 text-sm mb-1">Por</p>
-        <p className="text-3xl font-black text-gray-900 mb-2">R$ {formatarPreco(precoAtual)}</p>
-        {valorParcela > 0 && (
-          <p className="text-sm text-gray-500 mb-5">
-            <span className="font-bold text-gray-800">12x de R$ {formatarPreco(valorParcela)}</span> sem juros no cartão
-          </p>
-        )}
+        <div className="flex flex-wrap gap-2 mb-5">
+          <span className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-700 rounded-full px-3 py-2 text-xs font-semibold">
+            <ClockIcon className="w-4 h-4 text-[#cd146e] shrink-0" />
+            {curso.duracao || '-'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-700 rounded-full px-3 py-2 text-xs font-semibold">
+            <BoltIcon className="w-4 h-4 text-[#cd146e] shrink-0" />
+            {curso.carga_horaria || '-'}
+          </span>
+          {curso.categoria && (
+            <span className="inline-flex items-center gap-1.5 border border-gray-200 text-gray-700 rounded-full px-3 py-2 text-xs font-semibold">
+              <AcademicCapIcon className="w-4 h-4 text-[#cd146e] shrink-0" />
+              {curso.categoria}
+            </span>
+          )}
+        </div>
 
         <button
           onClick={onComprar}
@@ -283,6 +277,7 @@ export default function CursoDetalhe() {
       titulo: curso.titulo,
       preco: curso.preco || 0,
       horas: curso.carga_horaria || '',
+      precoOculto: true,
     });
   };
 
@@ -313,10 +308,6 @@ export default function CursoDetalhe() {
 
   const gradeCurricular = parseGradeCurricular(curso.grade_curricular);
   const blocosConteudo = parseBlocosConteudo(curso.blocos_conteudo);
-  const precoAtual = curso.preco || 0;
-  const precoOriginal = curso.preco_original && curso.preco_original > precoAtual ? curso.preco_original : null;
-  const valorParcela = precoAtual > 0 ? precoAtual / 12 : 0;
-  const percentualDesconto = precoOriginal ? Math.round(((precoOriginal - precoAtual) / precoOriginal) * 100) : null;
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] font-sans antialiased">
@@ -363,14 +354,7 @@ export default function CursoDetalhe() {
         {/* --- COLUNA LATERAL: CARD DE COMPRA (logo após o hero no mobile; sobrepõe a hero e fica sticky no desktop) --- */}
         <div className="lg:order-2 lg:-mt-80">
           <div className="lg:sticky lg:top-24">
-            <CardCompra
-              curso={curso}
-              precoAtual={precoAtual}
-              precoOriginal={precoOriginal}
-              valorParcela={valorParcela}
-              percentualDesconto={percentualDesconto}
-              onComprar={handleComprar}
-            />
+            <CardCompra curso={curso} onComprar={handleComprar} />
           </div>
         </div>
 

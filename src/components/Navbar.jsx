@@ -25,7 +25,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
           <div className="flex gap-6">
             <span>Central do Aluno: +55 (27) 99839-2172</span>
-            <span>Central Comercial do Licenciado: +55 (27) 99839-2172</span>
+            <span>Central Comercial: +55 (27) 99839-2172</span>
           </div>
         </div>
       </div>

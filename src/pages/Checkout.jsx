@@ -48,7 +48,11 @@ export default function Checkout() {
     parcelas: '1'
   });
 
-  const valorTotal = carrinho.reduce((total, item) => total + (item.preco || 0), 0);
+  const valorTotal = carrinho.reduce((total, item) => total + (item.precoOculto ? 0 : (item.preco || 0)), 0);
+  const temItemSobConsulta = carrinho.some((item) => item.precoOculto);
+  const mensagemWhatsapp = encodeURIComponent(
+    `Olá! Quero saber o valor e finalizar a matrícula ${carrinho.length > 1 ? 'nos cursos' : 'no curso'}: ${carrinho.map((item) => item.titulo).join(', ')}.`
+  );
 
   const handleInputChange = (e) => {
     let { name, value } = e.target;
@@ -140,62 +144,87 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* BLOCO 2: FORMA DE PAGAMENTO */}
-          <div className="bg-white rounded-3xl p-6 shadow-xs border border-gray-100">
-            <h2 className="text-lg font-black text-[#1a103c] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-pink-50 text-[#cd146e] flex items-center justify-center text-xs font-bold">2</span>
-              Forma de Pagamento
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <button type="button" onClick={() => setMetodoPagamento('pix')} className={`p-4 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-sm cursor-pointer transition-all ${metodoPagamento === 'pix' ? 'border-[#cd146e] bg-pink-50/30 text-[#cd146e]' : 'border-gray-100 text-gray-500 bg-white'}`}>
-                <span>⚡</span> Pix Imediato
-              </button>
-              <button type="button" onClick={() => setMetodoPagamento('cartao')} className={`p-4 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-sm cursor-pointer transition-all ${metodoPagamento === 'cartao' ? 'border-[#cd146e] bg-pink-50/30 text-[#cd146e]' : 'border-gray-100 text-gray-500 bg-white'}`}>
-                <span>💳</span> Cartão
-              </button>
+          {/* BLOCO 2: FORMA DE PAGAMENTO (ou aviso de valor sob consulta) */}
+          {temItemSobConsulta ? (
+            <div className="bg-white rounded-3xl p-6 shadow-xs border border-gray-100">
+              <h2 className="text-lg font-black text-[#1a103c] mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-pink-50 text-[#cd146e] flex items-center justify-center text-xs font-bold">2</span>
+                Valor Sob Consulta
+              </h2>
+              <div className="bg-pink-50/50 border border-pink-100 rounded-2xl p-5 text-center">
+                <span className="text-3xl">💬</span>
+                <h4 className="text-[#1a103c] font-bold text-sm mt-1">Este pedido tem curso(s) com valor sob consulta</h4>
+                <p className="text-gray-500 text-xs mt-1 max-w-md mx-auto">Não é possível finalizar essa matrícula pelo site. Fale com a gente pelo WhatsApp para saber o valor e concluir sua inscrição.</p>
+              </div>
             </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-6 shadow-xs border border-gray-100">
+              <h2 className="text-lg font-black text-[#1a103c] mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-pink-50 text-[#cd146e] flex items-center justify-center text-xs font-bold">2</span>
+                Forma de Pagamento
+              </h2>
 
-            {metodoPagamento === 'pix' ? (
-              <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-5 text-center">
-                <span className="text-3xl">📱</span>
-                <h4 className="text-emerald-800 font-bold text-sm mt-1">Liberação instantânea da sua vaga!</h4>
-                <p className="text-emerald-600 text-xs mt-1 max-w-md mx-auto">O código QR Code do Pix "Copia e Cola" será gerado assim que você finalizar a sua matrícula.</p>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <button type="button" onClick={() => setMetodoPagamento('pix')} className={`p-4 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-sm cursor-pointer transition-all ${metodoPagamento === 'pix' ? 'border-[#cd146e] bg-pink-50/30 text-[#cd146e]' : 'border-gray-100 text-gray-500 bg-white'}`}>
+                  <span>⚡</span> Pix Imediato
+                </button>
+                <button type="button" onClick={() => setMetodoPagamento('cartao')} className={`p-4 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-sm cursor-pointer transition-all ${metodoPagamento === 'cartao' ? 'border-[#cd146e] bg-pink-50/30 text-[#cd146e]' : 'border-gray-100 text-gray-500 bg-white'}`}>
+                  <span>💳</span> Cartão
+                </button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-3">
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Número do Cartão</label>
-                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="0000 0000 0000 0000" />
+
+              {metodoPagamento === 'pix' ? (
+                <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-5 text-center">
+                  <span className="text-3xl">📱</span>
+                  <h4 className="text-emerald-800 font-bold text-sm mt-1">Liberação instantânea da sua vaga!</h4>
+                  <p className="text-emerald-600 text-xs mt-1 max-w-md mx-auto">O código QR Code do Pix "Copia e Cola" será gerado assim que você finalizar a sua matrícula.</p>
                 </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Nome impresso no Cartão</label>
-                  <input type="text" name="cardName" value={formData.cardName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="COMO ESTÁ NO CARTÃO" />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Número do Cartão</label>
+                    <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="0000 0000 0000 0000" />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Nome impresso no Cartão</label>
+                    <input type="text" name="cardName" value={formData.cardName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="COMO ESTÁ NO CARTÃO" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Validade</label>
+                    <input type="text" name="cardExpiry" value={formData.cardExpiry} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="MM/AA" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">CVV</label>
+                    <input type="text" name="cardCvv" value={formData.cardCvv} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="123" />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Opções de Parcelamento</label>
+                    <select name="parcelas" value={formData.parcelas} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800 cursor-pointer">
+                      <option value="1">1x de R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
+                      <option value="2">2x de R$ {(valorTotal / 2).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
+                      <option value="3">3x de R$ {(valorTotal / 3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
+                      <option value="12">12x de R$ {(valorTotal / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Validade</label>
-                  <input type="text" name="cardExpiry" value={formData.cardExpiry} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="MM/AA" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">CVV</label>
-                  <input type="text" name="cardCvv" value={formData.cardCvv} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800" placeholder="123" />
-                </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Opções de Parcelamento</label>
-                  <select name="parcelas" value={formData.parcelas} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#cd146e] bg-gray-50/50 text-sm text-gray-800 cursor-pointer">
-                    <option value="1">1x de R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
-                    <option value="2">2x de R$ {(valorTotal / 2).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
-                    <option value="3">3x de R$ {(valorTotal / 3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
-                    <option value="12">12x de R$ {(valorTotal / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (Sem juros)</option>
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <button type="submit" className="w-full lg:hidden bg-[#cd146e] hover:bg-[#b0105e] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg shadow-pink-100 transition-all active:scale-[0.99] cursor-pointer text-center">
-            Finalizar Matrícula Segura
-          </button>
+              )}
+            </div>
+          )}
+
+          {temItemSobConsulta ? (
+            <a
+              href={`https://wa.me/5527998392172?text=${mensagemWhatsapp}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full lg:hidden bg-[#25D366] hover:bg-[#1ebe57] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg transition-all active:scale-[0.99] cursor-pointer text-center flex items-center justify-center gap-2"
+            >
+              💬 Falar no WhatsApp
+            </a>
+          ) : (
+            <button type="submit" className="w-full lg:hidden bg-[#cd146e] hover:bg-[#b0105e] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg shadow-pink-100 transition-all active:scale-[0.99] cursor-pointer text-center">
+              Finalizar Matrícula Segura
+            </button>
+          )}
         </form>
 
         {/* COLUNA DA DIREITA: RESUMO DO PEDIDO */}
@@ -210,7 +239,11 @@ export default function Checkout() {
                     <p className="font-bold text-[#1a103c] truncate">{item.titulo}</p>
                     <p className="text-gray-400 mt-0.5">⏱️ Carga horária: {item.horas}h</p>
                   </div>
-                  <span className="font-extrabold text-gray-700 shrink-0">R$ {item.preco?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  {item.precoOculto ? (
+                    <span className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded-full uppercase shrink-0">Sob consulta</span>
+                  ) : (
+                    <span className="font-extrabold text-gray-700 shrink-0">R$ {item.preco?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -218,7 +251,11 @@ export default function Checkout() {
             <div className="space-y-2 border-t border-gray-50 pt-4 text-xs font-semibold text-gray-500">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="text-[#1a103c] font-bold">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                {temItemSobConsulta ? (
+                  <span className="text-gray-500 font-bold uppercase text-[11px]">Sob consulta</span>
+                ) : (
+                  <span className="text-[#1a103c] font-bold">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                )}
               </div>
               <div className="flex justify-between">
                 <span>Matrícula + Emissão de Certificado</span>
@@ -226,13 +263,28 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between bg-[#FDF2F7] rounded-xl p-3 text-sm font-black mt-4">
                 <span className="text-[#1a103c] uppercase">Valor Total</span>
-                <span className="text-[#cd146e] text-base">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                {temItemSobConsulta ? (
+                  <span className="text-[#cd146e] text-sm uppercase">Sob consulta</span>
+                ) : (
+                  <span className="text-[#cd146e] text-base">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                )}
               </div>
             </div>
 
-            <button type="submit" onClick={handleSubmit} className="hidden lg:block w-full bg-[#cd146e] hover:bg-[#b0105e] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg shadow-pink-100 transition-all active:scale-[0.99] cursor-pointer text-center mt-6">
-              🔒 Finalizar Matrícula Segura
-            </button>
+            {temItemSobConsulta ? (
+              <a
+                href={`https://wa.me/5527998392172?text=${mensagemWhatsapp}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hidden lg:flex w-full bg-[#25D366] hover:bg-[#1ebe57] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg transition-all active:scale-[0.99] cursor-pointer text-center mt-6 items-center justify-center gap-2"
+              >
+                💬 Falar no WhatsApp
+              </a>
+            ) : (
+              <button type="submit" onClick={handleSubmit} className="hidden lg:block w-full bg-[#cd146e] hover:bg-[#b0105e] text-white py-4.5 rounded-2xl font-black uppercase tracking-wider text-sm shadow-lg shadow-pink-100 transition-all active:scale-[0.99] cursor-pointer text-center mt-6">
+                🔒 Finalizar Matrícula Segura
+              </button>
+            )}
 
             <div className="border-t border-gray-100 pt-5 mt-6 space-y-3">
               <div className="flex items-center gap-3 text-left">

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import ParallaxGallery from '../components/ParallaxGallery';
 import { supabase } from '../supabaseClient';
-import imagemInstitucional from '../assets/vagas.png';
-import selo6 from '../assets/selo6.png';
-import fotoHeroSobre from '../assets/sobreHeroFoto.png';
+import imagemInstitucional from '../assets/vagas.webp';
+import selo6 from '../assets/selo6.webp';
+import fotoHeroSobre from '../assets/sobreHeroFoto.webp';
 
 const ID_VIDEO_MANIFESTO = '4vff2PohAU8';
 
@@ -496,6 +496,8 @@ export default function Sobre() {
 
       {/* 3. SEÇÃO MANIFESTO (Container mais largo e vídeo sem borda) */}
       {/* Alterado para w-full e max-w-[1440px] para ocupar mais espaço nas laterais */}
+      {/* SEÇÃO DESATIVADA TEMPORARIAMENTE (mantida no código para reativação futura) */}
+      {false && (
       <section className="w-full max-w-[1440px] mx-auto px-4 md:px-6 pb-24">
         {/* Container Envelopado com Cantos Ultra Arredondados */}
         <div className="bg-[#cd146e]/10 rounded-[48px] py-16 px-6 md:px-12 flex flex-col items-center text-center w-full">
@@ -554,6 +556,7 @@ Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades
 
         </div>
       </section>
+      )}
 
     </div>
   );

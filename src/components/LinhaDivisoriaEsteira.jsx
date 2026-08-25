@@ -1,4 +1,4 @@
-import icone from '../assets/icon.png';
+import icone from '../assets/icon.webp';
 
 const ALTURA_TOTAL = 100;
 const ICONE_ASPECTO = 2109 / 1850; 

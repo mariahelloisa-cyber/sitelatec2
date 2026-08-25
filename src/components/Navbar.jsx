@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/logolatec.png';
+import logo from '../assets/logolatec.webp';
 import { useCartStore } from '../store/cartStore';
 
 const LINKS_NAV = [

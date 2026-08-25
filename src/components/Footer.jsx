@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logo from '../assets/logolatec.png';
+import logo from '../assets/logolatec.webp';
 import { supabase } from '../supabaseClient';
 
 const CONTATO_PADRAO = {

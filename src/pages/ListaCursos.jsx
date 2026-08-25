@@ -4,9 +4,23 @@ import Navbar from '../components/Navbar';
 import CursoListItem from '../components/CursoListItem';
 import { supabase } from '../supabaseClient';
 import { listaCursosGiga } from './cursosData';
-import imagemFundo from '../assets/imghero.png';
+import imagemFundo from '../assets/imghero.webp';
 import { useCartStore } from '../store/cartStore';
 import CarrinhoSidebar from '../components/CarrinhoSidebar';// <-- ADICIONE ESTA LINHA AQUI
+
+// Ordem de exibição/filtro desejada: Técnicos > Tecnólogos > Profissionalizantes (demais categorias vêm depois, em ordem alfabética)
+const ORDEM_CATEGORIAS = [
+  'técnicos',
+  'tecnólogos',
+  'profissionalizantes avançados',
+  'profissionalizantes comuns',
+  'profissionalizantes premium',
+];
+
+function getOrdemCategoria(nomeCategoria) {
+  const indice = ORDEM_CATEGORIAS.indexOf((nomeCategoria || '').trim().toLowerCase());
+  return indice === -1 ? ORDEM_CATEGORIAS.length : indice;
+}
 
 export default function ListaCursos() {
   const [searchParams] = useSearchParams();
@@ -71,7 +85,14 @@ export default function ListaCursos() {
       if (!vistas.has(chave)) vistas.set(chave, nome.trim());
     }
 
-    return ['Todas', ...Array.from(vistas.values()).sort((a, b) => a.localeCompare(b, 'pt-BR'))];
+    const ordenadas = Array.from(vistas.values()).sort((a, b) => {
+      const ordemA = getOrdemCategoria(a);
+      const ordemB = getOrdemCategoria(b);
+      if (ordemA !== ordemB) return ordemA - ordemB;
+      return a.localeCompare(b, 'pt-BR');
+    });
+
+    return ['Todas', ...ordenadas];
   }, [categoriasDb, cursosCadastrados]);
 
   // Helper para renderizar os ícones idênticos aos da imagem nas abas de categorias
@@ -135,7 +156,7 @@ export default function ListaCursos() {
                              categoriaCurso.toLowerCase() === categoriaSelecionada.toLowerCase();
 
     return combinaTexto && combinaCategoria;
-  });
+  }).sort((a, b) => getOrdemCategoria(a.categoriaNome) - getOrdemCategoria(b.categoriaNome));
 
   // Cursos cadastrados pelo admin, filtrados pela mesma busca e categoria da lista
   const cursosCadastradosFiltrados = cursosCadastrados.filter((curso) => {
@@ -147,7 +168,7 @@ export default function ListaCursos() {
                              categoriaCurso.toLowerCase() === categoriaSelecionada.toLowerCase();
 
     return combinaTexto && combinaCategoria;
-  });
+  }).sort((a, b) => getOrdemCategoria(a.categoria) - getOrdemCategoria(b.categoria));
 
   const totalCursosEncontrados = cursosCadastradosFiltrados.length + cursosFiltrados.length;
 

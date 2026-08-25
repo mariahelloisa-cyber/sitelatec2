@@ -5,12 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 // Placeholders reaproveitando fotos já existentes no site — troque pelas
 // fotos reais que você quiser exibir na galeria (recomendo imagens em pé,
 // formato retrato, para o efeito de colunas ficar bonito).
-import foto1 from '../assets/imghero.png';
-import foto2 from '../assets/fundo-login.png';
-import foto3 from '../assets/sobreHeroFoto.png';
-import foto4 from '../assets/vagas.png';
-import foto5 from '../assets/fundoo.png';
-import foto6 from '../assets/hero.png';
+import foto1 from '../assets/imghero.webp';
+import foto2 from '../assets/fundo-login.webp';
+import foto3 from '../assets/sobreHeroFoto.webp';
+import foto4 from '../assets/vagas.webp';
+import foto5 from '../assets/fundoo.webp';
+import foto6 from '../assets/hero.webp';
 
 const IMAGENS_PADRAO = [foto1, foto2, foto3, foto4, foto5, foto6, foto1, foto2, foto3];
 

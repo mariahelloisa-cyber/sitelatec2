@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logolatec.webp';
-import { useCartStore } from '../store/cartStore';
+import { useFavoritosStore } from '../store/favoritosStore';
 
 const LINKS_NAV = [
   { to: '/', label: 'Início' },
@@ -14,8 +14,8 @@ const LINKS_NAV = [
 ];
 
 export default function Navbar() {
-  const carrinho = useCartStore((state) => state.carrinho);
-  const setCarrinhoAberto = useCartStore((state) => state.setCarrinhoAberto);
+  const favoritos = useFavoritosStore((state) => state.favoritos);
+  const setFavoritosAberto = useFavoritosStore((state) => state.setFavoritosAberto);
   const [menuAberto, setMenuAberto] = useState(false);
 
   return (
@@ -25,7 +25,6 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
           <div className="flex gap-6">
             <span>Central do Aluno: +55 (27) 99839-2172</span>
-            <span>Central Comercial: +55 (27) 99839-2172</span>
           </div>
         </div>
       </div>
@@ -51,25 +50,25 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Botão Fale Conosco + Ícone do Carrinho */}
+            {/* Botão Fale Conosco + Ícone de Favoritos */}
             <div className="flex items-center gap-2 sm:gap-4">
               <a href="https://wa.me/5527998392172" target="_blank" rel="noreferrer" className="hidden sm:inline-block bg-[#cd146e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#9e1b7c] transition-all shadow-sm whitespace-nowrap">
                 Fale Conosco
               </a>
 
-              {/* ÍCONE DO CARRINHO */}
+              {/* ÍCONE DE FAVORITOS */}
               <button
-                onClick={() => setCarrinhoAberto(true)}
+                onClick={() => setFavoritosAberto(true)}
                 className="relative p-2 text-gray-800 hover:text-black transition-colors cursor-pointer flex items-center justify-center rounded-full hover:bg-gray-100 shrink-0"
-                title="Ver meu carrinho"
+                title="Ver meus favoritos"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6.7-4.35-9.33-8.2C1.02 10.6 1.4 7.6 3.6 5.9c1.9-1.47 4.6-1.2 6.2.55L12 8.8l2.2-2.35c1.6-1.75 4.3-2.02 6.2-.55 2.2 1.7 2.58 4.7.93 6.9C18.7 16.65 12 21 12 21z" />
                 </svg>
 
-                {carrinho.length > 0 && (
+                {favoritos.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 bg-[#cd146e] text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white shadow-xs animate-in zoom-in-50 duration-200">
-                    {carrinho.length}
+                    {favoritos.length}
                   </span>
                 )}
               </button>

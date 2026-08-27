@@ -5,8 +5,7 @@ import CursoListItem from '../components/CursoListItem';
 import { supabase } from '../supabaseClient';
 import { listaCursosGiga } from './cursosData';
 import imagemFundo from '../assets/imghero.webp';
-import { useCartStore } from '../store/cartStore';
-import CarrinhoSidebar from '../components/CarrinhoSidebar';// <-- ADICIONE ESTA LINHA AQUI
+import { useFavoritosStore } from '../store/favoritosStore';
 
 // Ordem de exibição/filtro desejada: Técnicos > Tecnólogos > Profissionalizantes (demais categorias vêm depois, em ordem alfabética)
 const ORDEM_CATEGORIAS = [
@@ -27,9 +26,8 @@ export default function ListaCursos() {
   const [pesquisa, setPesquisa] = useState(() => searchParams.get('busca') || '');
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todas');
   const [filtroCategoriaAberto, setFiltroCategoriaAberto] = useState(false);
-  const adicionarAoCarrinho = useCartStore((state) => state.adicionarAoCarrinho);
-  const carrinho = useCartStore((state) => state.carrinho);
-  const setCarrinhoAberto = useCartStore((state) => state.setCarrinhoAberto);
+  const alternarFavorito = useFavoritosStore((state) => state.alternarFavorito);
+  const favoritos = useFavoritosStore((state) => state.favoritos);
 
   // Cursos cadastrados pelo admin (Supabase), exibidos em card com página de detalhe
   const [cursosCadastrados, setCursosCadastrados] = useState([]);
@@ -394,24 +392,33 @@ export default function ListaCursos() {
                         {typeof horasItem === 'number' ? `${horasItem}H` : String(horasItem).toUpperCase()}
                       </span>
 
-                      {/* Botão de Compra Retangular Rosa */}
-                       <button
-  onClick={() => adicionarAoCarrinho({
-                    id: index,
-                    titulo: nomeItem,
-                    preco: precoItem,
-                    horas: horasItem,
-                    precoOculto: true
-                  })}
-                  className="bg-[#cd146e] hover:bg-[#b0105e] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer shrink-0 shadow-sm active:scale-95"
-                >
-                  <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span className="hidden md:inline text-[11px] font-extrabold uppercase tracking-wider">
-                    COMPRAR
-                  </span>
-                </button>
+                      {/* Botão de Favoritar */}
+                      {(() => {
+                        const jaFavoritado = favoritos.some((item) => item.id === index);
+                        return (
+                          <button
+                            onClick={() => alternarFavorito({
+                              id: index,
+                              titulo: nomeItem,
+                              preco: precoItem,
+                              horas: horasItem,
+                              precoOculto: true
+                            })}
+                            className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer shrink-0 shadow-sm active:scale-95 ${
+                              jaFavoritado
+                                ? 'bg-white text-[#cd146e] border border-[#cd146e]'
+                                : 'bg-[#cd146e] hover:bg-[#b0105e] text-white'
+                            }`}
+                          >
+                            <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill={jaFavoritado ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6.7-4.35-9.33-8.2C1.02 10.6 1.4 7.6 3.6 5.9c1.9-1.47 4.6-1.2 6.2.55L12 8.8l2.2-2.35c1.6-1.75 4.3-2.02 6.2-.55 2.2 1.7 2.58 4.7.93 6.9C18.7 16.65 12 21 12 21z" />
+                            </svg>
+                            <span className="hidden md:inline text-[11px] font-extrabold uppercase tracking-wider">
+                              {jaFavoritado ? 'FAVORITADO' : 'FAVORITAR'}
+                            </span>
+                          </button>
+                        );
+                      })()}
               </div>
             </div>
           );

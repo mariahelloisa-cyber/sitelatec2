@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 
 // Importação dos componentes globais
 import Footer from './components/Footer';
-import CarrinhoSidebar from './components/CarrinhoSidebar';
+import FavoritosSidebar from './components/FavoritosSidebar';
 import WhatsappFloatButton from './components/WhatsappFloatButton';
 
 // Página inicial carregada de imediato (primeira coisa que o visitante vê);
@@ -26,7 +26,7 @@ function LayoutGlobal() {
 
   return (
     <>
-      <CarrinhoSidebar />
+      <FavoritosSidebar />
       <WhatsappFloatButton />
 
       <Suspense fallback={null}>

@@ -34,3 +34,15 @@ export function parseBlocosConteudo(texto) {
     .map((bloco) => ({ ...bloco, texto: bloco.texto.trim() }))
     .filter((bloco) => bloco.titulo || bloco.texto);
 }
+
+// Converte os blocos estruturados (usados no formulário do admin) de volta
+// para o texto no formato "## Título\ntexto\n\n## Título 2\ntexto 2", que é
+// o formato salvo no banco e lido por parseBlocosConteudo.
+export function serializeBlocosConteudo(blocos) {
+  if (!Array.isArray(blocos)) return '';
+
+  return blocos
+    .filter((bloco) => (bloco.titulo || '').trim() || (bloco.texto || '').trim())
+    .map((bloco) => `## ${bloco.titulo?.trim() || ''}\n${bloco.texto || ''}`)
+    .join('\n\n');
+}

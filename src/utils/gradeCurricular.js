@@ -37,3 +37,24 @@ export function parseGradeCurricular(texto) {
 
   return semestres.filter((semestre) => semestre.disciplinas.length > 0);
 }
+
+// Converte a grade estruturada (usada no formulário do admin) de volta para o
+// texto no formato "1º Semestre\nDisciplina | horas\n\n2º Semestre\n...",
+// que é o formato salvo no banco e lido por parseGradeCurricular.
+export function serializeGradeCurricular(semestres) {
+  if (!Array.isArray(semestres)) return '';
+
+  return semestres
+    .map((semestre) => {
+      const disciplinas = (semestre.disciplinas || []).filter((d) => (d.nome || '').trim());
+      if (!semestre.titulo?.trim() && disciplinas.length === 0) return '';
+
+      const linhas = [semestre.titulo?.trim() || 'Disciplinas'];
+      disciplinas.forEach((d) => {
+        linhas.push(`${d.nome.trim()} | ${(d.horas || '').trim()}`);
+      });
+      return linhas.join('\n');
+    })
+    .filter(Boolean)
+    .join('\n\n');
+}

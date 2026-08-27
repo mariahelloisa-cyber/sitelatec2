@@ -38,6 +38,19 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ParticleText from '../components/ParticleText';
 import RoundCarousel from '../components/RoundCarousel';
+import { parseGradeCurricular, serializeGradeCurricular } from '../utils/gradeCurricular';
+import { parseBlocosConteudo, serializeBlocosConteudo } from '../utils/blocosConteudo';
+
+// --- Helpers para o formulário estruturado de Grade Curricular / Conteúdo do admin ---
+function criarDisciplinaVazia() {
+  return { id: crypto.randomUUID(), nome: '', horas: '' };
+}
+function criarSemestreVazio() {
+  return { id: crypto.randomUUID(), titulo: '', disciplinas: [criarDisciplinaVazia()] };
+}
+function criarBlocoVazio() {
+  return { id: crypto.randomUUID(), titulo: '', texto: '' };
+}
 
 // Configuração da seção "Acompanhe a LATec" (redes sociais) da página Sobre Nós
 const REDES_SOCIAIS_SOBRE_CONFIG = [
@@ -226,8 +239,8 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
   const [novaDuracaoCursoCad, setNovaDuracaoCursoCad] = useState("");
   const [novaCargaHorariaCursoCad, setNovaCargaHorariaCursoCad] = useState("");
   const [novoSeloMecCursoCad, setNovoSeloMecCursoCad] = useState(false);
-  const [novaGradeCurricularCursoCad, setNovaGradeCurricularCursoCad] = useState("");
-  const [novosBlocosConteudoCursoCad, setNovosBlocosConteudoCursoCad] = useState("");
+  const [semestresCursoCad, setSemestresCursoCad] = useState([criarSemestreVazio()]);
+  const [blocosCursoCad, setBlocosCursoCad] = useState([criarBlocoVazio()]);
   const [modalCursoCadAberto, setModalCursoCadAberto] = useState(false);
   const [buscaCursoCadAdmin, setBuscaCursoCadAdmin] = useState("");
   const [filtroCategoriaCadAdmin, setFiltroCategoriaCadAdmin] = useState("");
@@ -1630,8 +1643,8 @@ async function handleEliminarNoticia(id) {
         selo_mec: novoSeloMecCursoCad,
         imagem_url: imagemUrl,
         imagem_capa_url: imagemCapaUrl,
-        grade_curricular: novaGradeCurricularCursoCad,
-        blocos_conteudo: novosBlocosConteudoCursoCad,
+        grade_curricular: serializeGradeCurricular(semestresCursoCad),
+        blocos_conteudo: serializeBlocosConteudo(blocosCursoCad),
       }]);
 
       if (insertError) throw insertError;
@@ -1646,8 +1659,8 @@ async function handleEliminarNoticia(id) {
       setNovaDuracaoCursoCad("");
       setNovaCargaHorariaCursoCad("");
       setNovoSeloMecCursoCad(false);
-      setNovaGradeCurricularCursoCad("");
-      setNovosBlocosConteudoCursoCad("");
+      setSemestresCursoCad([criarSemestreVazio()]);
+      setBlocosCursoCad([criarBlocoVazio()]);
       if (inputImagem) inputImagem.value = "";
       if (inputImagemCapa) inputImagemCapa.value = "";
       setModalCursoCadAberto(false);
@@ -1674,8 +1687,23 @@ async function handleEliminarNoticia(id) {
     setNovaDuracaoCursoCad(curso.duracao || "");
     setNovaCargaHorariaCursoCad(curso.carga_horaria || "");
     setNovoSeloMecCursoCad(curso.selo_mec || false);
-    setNovaGradeCurricularCursoCad(curso.grade_curricular || "");
-    setNovosBlocosConteudoCursoCad(curso.blocos_conteudo || "");
+
+    const semestresCarregados = parseGradeCurricular(curso.grade_curricular || "").map((semestre) => ({
+      id: crypto.randomUUID(),
+      titulo: semestre.titulo || "",
+      disciplinas: semestre.disciplinas.length > 0
+        ? semestre.disciplinas.map((d) => ({ id: crypto.randomUUID(), nome: d.nome || "", horas: d.horas || "" }))
+        : [criarDisciplinaVazia()],
+    }));
+    setSemestresCursoCad(semestresCarregados.length > 0 ? semestresCarregados : [criarSemestreVazio()]);
+
+    const blocosCarregados = parseBlocosConteudo(curso.blocos_conteudo || "").map((bloco) => ({
+      id: crypto.randomUUID(),
+      titulo: bloco.titulo || "",
+      texto: bloco.texto || "",
+    }));
+    setBlocosCursoCad(blocosCarregados.length > 0 ? blocosCarregados : [criarBlocoVazio()]);
+
     setModalCursoCadAberto(true);
   }
 
@@ -1690,9 +1718,48 @@ async function handleEliminarNoticia(id) {
     setNovaDuracaoCursoCad("");
     setNovaCargaHorariaCursoCad("");
     setNovoSeloMecCursoCad(false);
-    setNovaGradeCurricularCursoCad("");
-    setNovosBlocosConteudoCursoCad("");
+    setSemestresCursoCad([criarSemestreVazio()]);
+    setBlocosCursoCad([criarBlocoVazio()]);
     setModalCursoCadAberto(false);
+  }
+
+  // --- Handlers do formulário estruturado de Grade Curricular ---
+  function adicionarSemestre() {
+    setSemestresCursoCad((atual) => [...atual, criarSemestreVazio()]);
+  }
+  function removerSemestre(semestreId) {
+    setSemestresCursoCad((atual) => atual.filter((s) => s.id !== semestreId));
+  }
+  function atualizarTituloSemestre(semestreId, titulo) {
+    setSemestresCursoCad((atual) => atual.map((s) => (s.id === semestreId ? { ...s, titulo } : s)));
+  }
+  function adicionarDisciplina(semestreId) {
+    setSemestresCursoCad((atual) => atual.map((s) => (
+      s.id === semestreId ? { ...s, disciplinas: [...s.disciplinas, criarDisciplinaVazia()] } : s
+    )));
+  }
+  function removerDisciplina(semestreId, disciplinaId) {
+    setSemestresCursoCad((atual) => atual.map((s) => (
+      s.id === semestreId ? { ...s, disciplinas: s.disciplinas.filter((d) => d.id !== disciplinaId) } : s
+    )));
+  }
+  function atualizarDisciplina(semestreId, disciplinaId, campo, valor) {
+    setSemestresCursoCad((atual) => atual.map((s) => (
+      s.id === semestreId
+        ? { ...s, disciplinas: s.disciplinas.map((d) => (d.id === disciplinaId ? { ...d, [campo]: valor } : d)) }
+        : s
+    )));
+  }
+
+  // --- Handlers do formulário estruturado de Conteúdo (Como Funciona) ---
+  function adicionarBloco() {
+    setBlocosCursoCad((atual) => [...atual, criarBlocoVazio()]);
+  }
+  function removerBloco(blocoId) {
+    setBlocosCursoCad((atual) => atual.filter((b) => b.id !== blocoId));
+  }
+  function atualizarBloco(blocoId, campo, valor) {
+    setBlocosCursoCad((atual) => atual.map((b) => (b.id === blocoId ? { ...b, [campo]: valor } : b)));
   }
 
   // Função para Salvar as Alterações de um Curso Cadastrado
@@ -1724,8 +1791,8 @@ async function handleEliminarNoticia(id) {
         duracao: novaDuracaoCursoCad,
         carga_horaria: novaCargaHorariaCursoCad,
         selo_mec: novoSeloMecCursoCad,
-        grade_curricular: novaGradeCurricularCursoCad,
-        blocos_conteudo: novosBlocosConteudoCursoCad,
+        grade_curricular: serializeGradeCurricular(semestresCursoCad),
+        blocos_conteudo: serializeBlocosConteudo(blocosCursoCad),
       };
 
       // Só substitui as imagens se o admin escolheu um novo arquivo
@@ -2690,26 +2757,122 @@ async function handleEliminarNoticia(id) {
                           <input type="file" id="imagem-capa-curso-cadastrado" accept="image/*" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 file:bg-[#cd146e] file:text-white file:border-0 file:rounded-full file:px-3 file:py-1 file:text-xs file:font-bold cursor-pointer" />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Grade Curricular</label>
-                          <textarea
-                            value={novaGradeCurricularCursoCad}
-                            onChange={(e) => setNovaGradeCurricularCursoCad(e.target.value)}
-                            rows={5}
-                            placeholder={"1º Semestre\nMatemática Básica | 60h\nPortuguês Instrumental | 40h\n\n2º Semestre\nCálculo I | 80h"}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
-                          />
-                          <p className="text-[10px] text-gray-400 mt-1">Uma linha sem "|" inicia um semestre novo. Disciplinas no formato "nome | carga horária".</p>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs text-gray-500 font-bold uppercase">Grade Curricular</label>
+                            <button
+                              type="button"
+                              onClick={adicionarSemestre}
+                              className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5 cursor-pointer flex items-center gap-1 transition-colors"
+                            >
+                              <PlusIcon className="w-3 h-3" /> Semestre
+                            </button>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            {semestresCursoCad.map((semestre) => (
+                              <div key={semestre.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={semestre.titulo}
+                                    onChange={(e) => atualizarTituloSemestre(semestre.id, e.target.value)}
+                                    placeholder="Ex: 1º Semestre"
+                                    className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 focus:outline-none focus:border-[#cd146e]"
+                                  />
+                                  {semestresCursoCad.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removerSemestre(semestre.id)}
+                                      className="text-red-400 hover:text-red-600 cursor-pointer p-1 shrink-0"
+                                      title="Remover semestre"
+                                    >
+                                      <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+
+                                {semestre.disciplinas.map((disciplina) => (
+                                  <div key={disciplina.id} className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      value={disciplina.nome}
+                                      onChange={(e) => atualizarDisciplina(semestre.id, disciplina.id, 'nome', e.target.value)}
+                                      placeholder="Nome da disciplina"
+                                      className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e]"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={disciplina.horas}
+                                      onChange={(e) => atualizarDisciplina(semestre.id, disciplina.id, 'horas', e.target.value)}
+                                      placeholder="Horas"
+                                      className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] shrink-0"
+                                    />
+                                    {semestre.disciplinas.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => removerDisciplina(semestre.id, disciplina.id)}
+                                        className="text-red-400 hover:text-red-600 cursor-pointer p-1 shrink-0"
+                                        title="Remover disciplina"
+                                      >
+                                        <XMarkIcon className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+
+                                <button
+                                  type="button"
+                                  onClick={() => adicionarDisciplina(semestre.id)}
+                                  className="self-start text-[10px] font-black uppercase text-[#cd146e] hover:text-[#a61058] cursor-pointer mt-1"
+                                >
+                                  + Disciplina
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Conteúdo (Como Funciona)</label>
-                          <textarea
-                            value={novosBlocosConteudoCursoCad}
-                            onChange={(e) => setNovosBlocosConteudoCursoCad(e.target.value)}
-                            rows={5}
-                            placeholder={"## Metodologia\nTexto explicando a metodologia...\n\n## Material Didático\nMais texto aqui..."}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] focus:bg-white font-mono resize-y"
-                          />
-                          <p className="text-[10px] text-gray-400 mt-1">Cada bloco começa com "## Título" seguido do texto.</p>
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs text-gray-500 font-bold uppercase">Conteúdo (Como Funciona)</label>
+                            <button
+                              type="button"
+                              onClick={adicionarBloco}
+                              className="text-[10px] font-black uppercase text-amber-600 hover:text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5 cursor-pointer flex items-center gap-1 transition-colors"
+                            >
+                              <PlusIcon className="w-3 h-3" /> Texto
+                            </button>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            {blocosCursoCad.map((bloco) => (
+                              <div key={bloco.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={bloco.titulo}
+                                    onChange={(e) => atualizarBloco(bloco.id, 'titulo', e.target.value)}
+                                    placeholder="Ex: Sobre o Curso: O que é?"
+                                    className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 focus:outline-none focus:border-[#cd146e]"
+                                  />
+                                  {blocosCursoCad.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removerBloco(bloco.id)}
+                                      className="text-red-400 hover:text-red-600 cursor-pointer p-1 shrink-0"
+                                      title="Remover bloco"
+                                    >
+                                      <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                                <textarea
+                                  value={bloco.texto}
+                                  onChange={(e) => atualizarBloco(bloco.id, 'texto', e.target.value)}
+                                  rows={3}
+                                  placeholder="Texto explicando esse tópico..."
+                                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#cd146e] resize-y"
+                                />
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         <button
                           type="submit"

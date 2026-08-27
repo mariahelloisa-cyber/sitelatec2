@@ -43,8 +43,6 @@ import RoundCarousel from '../components/RoundCarousel';
 const REDES_SOCIAIS_SOBRE_CONFIG = [
   { key: 'facebook', label: 'Facebook' },
   { key: 'instagram', label: 'Instagram' },
-  { key: 'youtube', label: 'YouTube' },
-  { key: 'reclameaqui', label: 'Reclame Aqui' },
   { key: 'google', label: 'Google Meu Negócio' },
 ];
 
@@ -99,13 +97,19 @@ export default function Inicio() {
   const [novoTopicofaq, setNovoTopicofaq] = useState("Geral");
   // --- Estados para o Gerenciador de Vagas ---
   const [vagasAdmin, setVagasAdmin] = useState([]);
+  const [vagaEditandoId, setVagaEditandoId] = useState(null);
   const [novaVagaTitulo, setNovaVagaTitulo] = useState("");
   const [novaVagaDepartamento, setNovaVagaDepartamento] = useState("");
   const [novaVagaLocalizacao, setNovaVagaLocalizacao] = useState("");
+  const [novaVagaModalidade, setNovaVagaModalidade] = useState("Presencial");
   const [novaVagaTipoContrato, setNovaVagaTipoContrato] = useState("CLT");
+  const [novaVagaCargaHoraria, setNovaVagaCargaHoraria] = useState("");
+  const [novaVagaSalario, setNovaVagaSalario] = useState("");
   const [novaVagaDescricao, setNovaVagaDescricao] = useState("");
+  const [novaVagaRequisitos, setNovaVagaRequisitos] = useState("");
+  const [novaVagaBeneficios, setNovaVagaBeneficios] = useState("");
   const [novaVagaLink, setNovaVagaLink] = useState("");
-  
+
   
   // --- Estados para as restantes seções (agora 100% Supabase) ---
   const [listaSelos, setListaSelos] = useState([]);
@@ -539,34 +543,65 @@ async function handleEliminarNoticia(id) {
 
   async function handleAdicionarVaga(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    
+
     if (!novaVagaTitulo.trim() || !novaVagaDescricao.trim()) {
       alert("⚠️ Por favor, preenche o Título e a Descrição da vaga!");
       return;
     }
 
+    const dadosVaga = {
+      titulo: novaVagaTitulo,
+      departamento: novaVagaDepartamento,
+      localizacao: novaVagaLocalizacao,
+      modalidade: novaVagaModalidade,
+      tipo_contrato: novaVagaTipoContrato,
+      carga_horaria: novaVagaCargaHoraria,
+      salario: novaVagaSalario,
+      descricao: novaVagaDescricao,
+      requisitos: novaVagaRequisitos,
+      beneficios: novaVagaBeneficios,
+      link_formulario: novaVagaLink
+    };
+
     try {
-      const { error } = await supabase.from('vagas').insert([{ 
-        titulo: novaVagaTitulo, 
-        departamento: novaVagaDepartamento,
-        localizacao: novaVagaLocalizacao,
-        tipo_contrato: novaVagaTipoContrato,
-        descricao: novaVagaDescricao,
-        link_formulario: novaVagaLink
-      }]);
+      const { error } = vagaEditandoId
+        ? await supabase.from('vagas').update(dadosVaga).eq('id', vagaEditandoId)
+        : await supabase.from('vagas').insert([dadosVaga]);
 
       if (error) throw error;
 
-      // Limpar campos
-      setNovaVagaTitulo(""); setNovaVagaDepartamento(""); setNovaVagaLocalizacao("");
-      setNovaVagaTipoContrato("CLT"); setNovaVagaDescricao(""); setNovaVagaLink("");
-      
-      alert("✅ Vaga adicionada com sucesso!");
+      alert(vagaEditandoId ? "✅ Vaga atualizada com sucesso!" : "✅ Vaga adicionada com sucesso!");
+      cancelarEdicaoVaga();
       buscarVagasAdmin();
     } catch (err) {
       console.error(err);
-      alert("❌ Erro ao adicionar vaga: " + err.message);
+      alert("❌ Erro ao salvar vaga: " + err.message);
     }
+  }
+
+  // Carrega uma vaga já cadastrada no formulário para edição
+  function iniciarEdicaoVaga(vaga) {
+    setVagaEditandoId(vaga.id);
+    setNovaVagaTitulo(vaga.titulo || "");
+    setNovaVagaDepartamento(vaga.departamento || "");
+    setNovaVagaLocalizacao(vaga.localizacao || "");
+    setNovaVagaModalidade(vaga.modalidade || "Presencial");
+    setNovaVagaTipoContrato(vaga.tipo_contrato || "CLT");
+    setNovaVagaCargaHoraria(vaga.carga_horaria || "");
+    setNovaVagaSalario(vaga.salario || "");
+    setNovaVagaDescricao(vaga.descricao || "");
+    setNovaVagaRequisitos(Array.isArray(vaga.requisitos) ? vaga.requisitos.join("\n") : (vaga.requisitos || ""));
+    setNovaVagaBeneficios(Array.isArray(vaga.beneficios) ? vaga.beneficios.join("\n") : (vaga.beneficios || ""));
+    setNovaVagaLink(vaga.link_formulario || "");
+  }
+
+  function cancelarEdicaoVaga() {
+    setVagaEditandoId(null);
+    setNovaVagaTitulo(""); setNovaVagaDepartamento(""); setNovaVagaLocalizacao("");
+    setNovaVagaModalidade("Presencial"); setNovaVagaTipoContrato("CLT");
+    setNovaVagaCargaHoraria(""); setNovaVagaSalario("");
+    setNovaVagaDescricao(""); setNovaVagaRequisitos(""); setNovaVagaBeneficios("");
+    setNovaVagaLink("");
   }
 
   async function handleDeletarVaga(id) {
@@ -574,6 +609,7 @@ async function handleEliminarNoticia(id) {
     try {
       const { error } = await supabase.from('vagas').delete().eq('id', id);
       if (error) throw error;
+      if (vagaEditandoId === id) cancelarEdicaoVaga();
       alert("✅ Vaga removida!");
       buscarVagasAdmin();
     } catch (err) {
@@ -2161,16 +2197,16 @@ async function handleEliminarNoticia(id) {
          {/* --- GERENCIADOR DE VAGAS --- */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 text-left shadow-sm mb-8">
               <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-6 border-b border-gray-200 pb-3 inline-flex items-center gap-2">
-                💼 Gerenciar Vagas de Emprego
+                💼 {vagaEditandoId ? 'Editar Vaga' : 'Gerenciar Vagas de Emprego'}
               </h3>
-              
+
               <form onSubmit={handleAdicionarVaga} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Título da Vaga</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Professor de Inglês" 
+                    <input
+                      type="text"
+                      placeholder="Ex: Professor de Inglês"
                       value={novaVagaTitulo}
                       onChange={(e) => setNovaVagaTitulo(e.target.value)}
                       className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
@@ -2179,9 +2215,9 @@ async function handleEliminarNoticia(id) {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Departamento</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Corpo Docente" 
+                    <input
+                      type="text"
+                      placeholder="Ex: Corpo Docente"
                       value={novaVagaDepartamento}
                       onChange={(e) => setNovaVagaDepartamento(e.target.value)}
                       className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
@@ -2192,18 +2228,33 @@ async function handleEliminarNoticia(id) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Localização</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Lisboa / Híbrido" 
+                    <input
+                      type="text"
+                      placeholder="Ex: Itabaiana - SE"
                       value={novaVagaLocalizacao}
                       onChange={(e) => setNovaVagaLocalizacao(e.target.value)}
                       className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
                     />
                   </div>
                   <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Modalidade</label>
+                    <select
+                      value={novaVagaModalidade}
+                      onChange={(e) => setNovaVagaModalidade(e.target.value)}
+                      className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
+                    >
+                      <option value="Presencial">Presencial</option>
+                      <option value="Remoto">Remoto</option>
+                      <option value="Híbrido">Híbrido</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Tipo de Contrato</label>
-                    <select 
-                      value={novaVagaTipoContrato} 
+                    <select
+                      value={novaVagaTipoContrato}
                       onChange={(e) => setNovaVagaTipoContrato(e.target.value)}
                       className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
                     >
@@ -2213,13 +2264,33 @@ async function handleEliminarNoticia(id) {
                       <option value="Freelancer">Freelancer</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Carga Horária</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: 44h semanais"
+                      value={novaVagaCargaHoraria}
+                      onChange={(e) => setNovaVagaCargaHoraria(e.target.value)}
+                      className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Salário</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: A combinar"
+                      value={novaVagaSalario}
+                      onChange={(e) => setNovaVagaSalario(e.target.value)}
+                      className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Link para Inscrição (Formulário/Email)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: https://forms.gle/... ou mailto:rh@empresa.com" 
+                  <input
+                    type="text"
+                    placeholder="Ex: https://forms.gle/... ou mailto:rh@empresa.com"
                     value={novaVagaLink}
                     onChange={(e) => setNovaVagaLink(e.target.value)}
                     className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
@@ -2227,10 +2298,10 @@ async function handleEliminarNoticia(id) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Descrição / Requisitos</label>
-                  <textarea 
-                    rows="4" 
-                    placeholder="Descreve as responsabilidades e requisitos da vaga..." 
+                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Descrição</label>
+                  <textarea
+                    rows="4"
+                    placeholder="Descreve as responsabilidades da vaga..."
                     value={novaVagaDescricao}
                     onChange={(e) => setNovaVagaDescricao(e.target.value)}
                     className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
@@ -2238,13 +2309,46 @@ async function handleEliminarNoticia(id) {
                   />
                 </div>
 
-                <button 
-                  type="submit"
-                  onClick={(e) => handleAdicionarVaga(e)}
-                  className="bg-[#cd146e] hover:bg-[#a61058] text-white text-[11px] font-black uppercase tracking-wider px-5 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
-                >
-                  Adicionar Vaga
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">O que a vaga pede (um item por linha)</label>
+                    <textarea
+                      rows="4"
+                      placeholder={"Ensino médio completo\nExperiência com atendimento\nDisponibilidade para trabalhar aos sábados"}
+                      value={novaVagaRequisitos}
+                      onChange={(e) => setNovaVagaRequisitos(e.target.value)}
+                      className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-1">O que a LATec oferece (um item por linha)</label>
+                    <textarea
+                      rows="4"
+                      placeholder={"Vale-refeição\nDay off\nPlano de carreira"}
+                      value={novaVagaBeneficios}
+                      onChange={(e) => setNovaVagaBeneficios(e.target.value)}
+                      className="w-full text-xs p-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-hidden focus:border-[#cd146e] focus:bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    className="bg-[#cd146e] hover:bg-[#a61058] text-white text-[11px] font-black uppercase tracking-wider px-5 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                  >
+                    {vagaEditandoId ? 'Salvar Alterações' : 'Adicionar Vaga'}
+                  </button>
+                  {vagaEditandoId && (
+                    <button
+                      type="button"
+                      onClick={cancelarEdicaoVaga}
+                      className="text-gray-500 hover:text-gray-700 text-[11px] font-black uppercase tracking-wider px-5 py-3 rounded-xl transition-all active:scale-95 cursor-pointer"
+                    >
+                      Cancelar Edição
+                    </button>
+                  )}
+                </div>
               </form>
 
               {/* LISTAGEM DAS VAGAS CADASTRADAS */}
@@ -2254,7 +2358,7 @@ async function handleEliminarNoticia(id) {
                   <p className="text-xs text-gray-400 italic">Nenhuma vaga publicada.</p>
                 ) : (
                   vagasAdmin.map(vaga => (
-                    <div key={vaga.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-xs">
+                    <div key={vaga.id} className={`flex items-center justify-between p-3 rounded-xl border shadow-xs ${vagaEditandoId === vaga.id ? 'bg-[#fdf2f7] border-[#cd146e]/40' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="pr-4 flex items-center gap-2 flex-wrap sm:flex-nowrap">
                         <span className="text-[9px] font-extrabold bg-white text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">
                           {vaga.tipo_contrato}
@@ -2262,12 +2366,20 @@ async function handleEliminarNoticia(id) {
                         <strong className="text-xs text-gray-700 font-medium">{vaga.titulo}</strong>
                         <span className="text-[10px] text-gray-400 hidden sm:inline">- {vaga.departamento}</span>
                       </div>
-                      <button 
-                        onClick={() => handleDeletarVaga(vaga.id)}
-                        className="text-red-400 hover:text-red-500 text-xs font-bold uppercase px-2 py-1 transition-colors cursor-pointer shrink-0"
-                      >
-                        Excluir
-                      </button>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <button
+                          onClick={() => iniciarEdicaoVaga(vaga)}
+                          className="text-[#cd146e] hover:text-[#a61058] text-xs font-bold uppercase px-2 py-1 transition-colors cursor-pointer"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDeletarVaga(vaga.id)}
+                          className="text-red-400 hover:text-red-500 text-xs font-bold uppercase px-2 py-1 transition-colors cursor-pointer"
+                        >
+                          Excluir
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}

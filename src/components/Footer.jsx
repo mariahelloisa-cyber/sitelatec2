@@ -141,9 +141,9 @@ export default function Footer() {
         <div className="border-t border-gray-200 mt-6 pt-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
           <p>© {anoAtual} LATec. Todos os direitos reservados.</p>
           <div className="flex items-center gap-3">
-            <a href="/privacidade" className="hover:text-[#cd146e] transition-colors">Política de Privacidade</a>
+             <p> Política de Privacidade</p>
             <span className="w-px h-3 bg-gray-300" />
-            <a href="/termos" className="hover:text-[#cd146e] transition-colors">Termos de Uso</a>
+             <p>Termos de Uso</p>
           </div>
         </div>
 

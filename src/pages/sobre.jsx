@@ -23,8 +23,6 @@ const DESTAQUES_PADRAO = {
 const REDES_SOCIAIS_CONFIG = [
   { key: 'facebook', label: 'Facebook' },
   { key: 'instagram', label: 'Instagram' },
-  { key: 'youtube', label: 'YouTube' },
-  { key: 'reclameaqui', label: 'Reclame Aqui' },
   { key: 'google', label: 'Google Meu Negócio' },
 ];
 
@@ -246,7 +244,7 @@ export default function Sobre() {
   ];
 
   return (
-    <div className="w-full bg-white font-sans antialiased" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="w-full bg-white font-sans antialiased">
       
       <Navbar />
 
@@ -452,14 +450,14 @@ export default function Sobre() {
             <h2 className="text-2xl md:text-4xl font-black text-white text-center mb-8 md:mb-10 tracking-tight -mt-4 md:-mt-8">
               Acompanhe a <span className="text-black">LATec</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 md:gap-6">
+            <div className="flex flex-wrap justify-center gap-6 md:gap-10">
               {REDES_SOCIAIS_CONFIG.map(({ key, label }) => (
                 <a
                   key={key}
                   href={redesSociais[`${key}_link`] || '#'}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex flex-col items-center gap-3"
+                  className="group flex flex-col items-center gap-3 w-36 sm:w-44 md:w-52"
                 >
                   <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
                     {redesSociais[`${key}_imagem`] ? (

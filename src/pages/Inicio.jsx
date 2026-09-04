@@ -2742,7 +2742,7 @@ async function handleEliminarNoticia(id) {
                         </div>
                         <label className="flex items-center gap-2 text-xs text-gray-600 font-bold cursor-pointer bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                           <input type="checkbox" checked={novoSeloMecCursoCad} onChange={(e) => setNovoSeloMecCursoCad(e.target.checked)} className="w-4 h-4 accent-[#cd146e] cursor-pointer" />
-                          Exibir selo MEC
+                          Exibir selo SISTEC
                         </label>
                         <div>
                           <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">
@@ -3333,7 +3333,7 @@ async function handleEliminarNoticia(id) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <p className="text-gray-700 font-bold text-sm md:text-[15px] leading-snug">Certificado Técnico Autorizado pelo MEC</p>
+            <p className="text-gray-700 font-bold text-sm md:text-[15px] leading-snug">Certificado Técnico Autorizado pelo SISTEC</p>
           </div>
           <div className="flex items-center gap-4 md:px-8 md:border-l md:border-gray-200">
             <div className="w-12 h-12 rounded-full bg-[#cd146e]/10 flex items-center justify-center text-[#cd146e] shrink-0 shadow-sm">
@@ -3516,7 +3516,7 @@ async function handleEliminarNoticia(id) {
               <div className="lg:col-span-5 w-full flex items-center">
                 <div className="block lg:hidden w-full h-[360px] relative rounded-2xl overflow-hidden shadow-md">
                   <div className="absolute top-4 left-4 bg-[#ffe600] text-gray-900 rounded-full w-16 h-16 flex flex-col items-center justify-center text-center p-1 shadow-md z-20">
-                    <span className="text-[7px] font-bold uppercase leading-none">Nota MEC</span>
+                    <span className="text-[7px] font-bold uppercase leading-none">Nota SISTEC</span>
                     <span className="text-xl font-black leading-none">5</span>
                   </div>
                   <img 

@@ -81,7 +81,7 @@ export default function FavoritosSidebar() {
         <div className="bg-white px-5 pt-4 pb-6 border-t border-gray-100 space-y-4">
           <div className="flex items-center justify-center gap-1.5 text-[#cd146e] text-xs font-bold bg-pink-50/50 py-1.5 rounded-lg">
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-            Cursos autorizados e reconhecidos pelo MEC
+            Cursos autorizados e reconhecidos pelo SISTEC
           </div>
 
           <button

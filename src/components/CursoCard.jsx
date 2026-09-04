@@ -26,7 +26,7 @@ export default function CursoCard({ curso }) {
             <svg className="w-3 h-3 text-[#cd146e]" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 1l2.39 4.84L18 6.91l-4 3.9.94 5.49L10 13.77l-4.94 2.53L6 10.81l-4-3.9 5.61-1.07L10 1z" />
             </svg>
-            MEC
+            SISTEC
           </span>
         )}
 

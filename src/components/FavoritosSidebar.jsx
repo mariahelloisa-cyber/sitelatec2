@@ -59,7 +59,7 @@ export default function FavoritosSidebar() {
                 <div className="flex-1 min-w-0 pr-6">
                   <h3 className="text-sm font-black text-[#1a103c] leading-tight break-words line-clamp-2">{item.titulo}</h3>
                   <div className="inline-flex items-center gap-1 bg-[#F3E8FF]/60 text-[#7c3aed] px-2 py-0.5 rounded-md text-[10px] font-bold mt-1.5">
-                    ⏱️ {item.horas}h
+                    ⏱️ {item.horas}
                   </div>
                 </div>
 
@@ -90,9 +90,9 @@ export default function FavoritosSidebar() {
               window.open(`https://wa.me/5527998392172?text=${mensagemWhatsapp}`, '_blank', 'noopener,noreferrer');
             }}
             disabled={favoritos.length === 0}
-            className="w-full text-white py-4 rounded-2xl font-black uppercase tracking-wider flex items-center justify-between px-5 shadow-md transition-all active:scale-[0.98] cursor-pointer bg-[#25D366] hover:bg-[#1ebe57] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+            className="w-full text-white py-4 rounded-2xl font-black uppercase tracking-wider flex items-center justify-between px-5 shadow-md transition-all active:scale-[0.98] cursor-pointer bg-[#cd146e] hover:bg-[#b0105e] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            <span className="text-sm">Falar no WhatsApp</span>
+            <span className="text-sm">Matricule-se</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
           </button>
 

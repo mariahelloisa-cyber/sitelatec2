@@ -3333,7 +3333,7 @@ async function handleEliminarNoticia(id) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <p className="text-gray-700 font-bold text-sm md:text-[15px] leading-snug">Certificado Técnico Autorizado pelo SISTEC</p>
+            <p className="text-gray-700 font-bold text-sm md:text-[15px] leading-snug"> Diploma técnico reconhecido pelo MEC</p>
           </div>
           <div className="flex items-center gap-4 md:px-8 md:border-l md:border-gray-200">
             <div className="w-12 h-12 rounded-full bg-[#cd146e]/10 flex items-center justify-center text-[#cd146e] shrink-0 shadow-sm">

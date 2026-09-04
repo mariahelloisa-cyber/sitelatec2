@@ -27,7 +27,7 @@ const BENEFICIOS = [
   {
     Icon: VideoCameraIcon,
     titulo: 'Videoaulas',
-    descricao: 'E apostilas para você estudar onde e quando quiser.',
+    descricao: 'E apostilas digitais para você estudar onde e quando quiser.',
   },
   {
     Icon: LifebuoyIcon,
@@ -37,15 +37,11 @@ const BENEFICIOS = [
   {
     Icon: ShieldCheckIcon,
     titulo: 'Diploma',
-    descricao: 'Certificado digital ao concluir o curso.',
+    descricao: 'Certificado ao concluir o curso.',
   },
 ];
 
 const FAQ_ITEMS = [
-  {
-    pergunta: 'Como funciona o certificado?',
-    resposta: 'Ao concluir o curso, você recebe um certificado digital que pode ser baixado e compartilhado, comprovando sua qualificação.',
-  },
   {
     pergunta: 'Posso estudar no meu próprio ritmo?',
     resposta: 'Sim. O conteúdo fica disponível 24 horas por dia, então você organiza os estudos de acordo com a sua rotina.',

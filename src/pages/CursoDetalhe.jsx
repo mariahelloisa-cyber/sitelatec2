@@ -10,11 +10,9 @@ import {
   PlusIcon,
   MinusIcon,
   VideoCameraIcon,
-  LifebuoyIcon,
+  UserIcon,
   ShieldCheckIcon,
-  HeartIcon,
 } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import Navbar from '../components/Navbar';
 import CursoCard from '../components/CursoCard';
 import { supabase } from '../supabaseClient';
@@ -30,13 +28,13 @@ const BENEFICIOS = [
     descricao: 'E apostilas digitais para você estudar onde e quando quiser.',
   },
   {
-    Icon: LifebuoyIcon,
+    Icon: UserIcon,
     titulo: 'Tutoria',
-    descricao: 'Para sanar todas as dúvidas durante o curso.',
+    descricao: 'Suporte com especialistas para tirar todas as suas dúvidas.',
   },
   {
     Icon: ShieldCheckIcon,
-    titulo: 'Diploma',
+    titulo: 'Certificado',
     descricao: 'Certificado ao concluir o curso.',
   },
 ];
@@ -203,8 +201,7 @@ function CardCompra({ curso, favoritado, onFavoritar }) {
               : 'bg-[#cd146e] hover:bg-[#a61058] text-white'
           }`}
         >
-          {favoritado ? <HeartIconSolid className="w-5 h-5" /> : <HeartIcon className="w-5 h-5" />}
-          {favoritado ? 'Favoritado' : 'Favoritar curso'}
+          {favoritado ? 'Matriculado' : 'Matricule-se'}
         </button>
       </div>
     </div>
@@ -260,7 +257,7 @@ export default function CursoDetalhe() {
 
   useEffect(() => {
     if (!curso) return;
-    document.title = `${curso.titulo} | LA Tec`;
+    document.title = `${curso.titulo} | LATec`;
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement('meta');
@@ -338,6 +335,15 @@ export default function CursoDetalhe() {
           <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-white max-w-2xl">{curso.titulo}</h1>
           <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-lg mb-7">{curso.descricao}</p>
 
+          <a
+            href={`https://wa.me/5527998392172?text=${encodeURIComponent(`Olá! Quero garantir minha vaga no curso ${curso.titulo}.`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="animate-pulse-destaque inline-flex items-center justify-center bg-[#cd146e] hover:bg-[#a61058] text-white text-sm font-black uppercase tracking-wide px-8 py-4 rounded-full active:scale-[0.98] mb-7 will-change-transform"
+          >
+            Quero garantir minha vaga
+          </a>
+
           <div className="flex flex-wrap gap-3">
             <span className="inline-flex items-center gap-2 border border-white/25 text-white rounded-full px-4 py-2.5 text-xs sm:text-sm font-semibold">
               <ClockIcon className="w-4 h-4 text-[#cd146e] shrink-0" />
@@ -371,7 +377,7 @@ export default function CursoDetalhe() {
           <AoRolar>
             <div className="mb-6">
               <h2 className="relative inline-block text-2xl md:text-3xl font-black text-gray-900">
-                Sobre o Curso
+                Por que investir nessa carreira agora?
                 <span className="absolute left-0 -bottom-2 w-16 h-1.5 rounded-full bg-[#cd146e]"></span>
               </h2>
             </div>
@@ -386,7 +392,7 @@ export default function CursoDetalhe() {
               <TituloSecao
                 titulo="O que você terá"
                 destaque="acesso"
-                subtitulo="Tudo o que você precisa para aprender com qualidade, do início ao certificado."
+                subtitulo="Tudo o que você precisa para aprender com qualidade e conquistar o seu certificado."
               />
             </AoRolar>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">

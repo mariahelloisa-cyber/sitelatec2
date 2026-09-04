@@ -203,7 +203,7 @@ export default function Sobre() {
       ano: '2020 - 2021',
       categoria: 'IDEALIZAÇÃO',
       titulo: 'O Início de um Sonho',
-      descricao: 'Nasce a LA Tec, com o propósito de ampliar o acesso à educação técnica de qualidade e contribuir para o desenvolvimento regional.',
+      descricao: 'Nasce a LATec, com o propósito de ampliar o acesso à educação técnica de qualidade e contribuir para o desenvolvimento regional.',
       imagem: selo6 
     },
     {
@@ -224,7 +224,7 @@ export default function Sobre() {
       ano: '2024',
       categoria: 'INOVAÇÃO',
       titulo: 'Crescimento e Impacto',
-      descricao: 'Consolidação da LA Tec como uma instituição comprometida com a qualificação profissional e a transformação de vidas.',
+      descricao: 'Consolidação da LATec como uma instituição comprometida com a qualificação profissional e a transformação de vidas.',
       imagem: selo6
     },
     {
@@ -238,7 +238,7 @@ export default function Sobre() {
       ano: '2026',
       categoria: 'O FUTURO CONTINUA',
       titulo: 'O Futuro Continua',
-      descricao: 'A LA Tec segue investindo em inovação, tecnologia e educação para criar novas oportunidades e formar profissionais preparados para os desafios do amanhã.',
+      descricao: 'A LATec segue investindo em inovação, tecnologia e educação para criar novas oportunidades e formar profissionais preparados para os desafios do amanhã.',
       imagem: selo6
     }
   ];
@@ -260,7 +260,7 @@ export default function Sobre() {
                 <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Sobre Nós</span>
               </div>
               <h1 className="text-4xl md:text-6xl lg:text-[58px] font-black text-[#0f172a] leading-[1.1] tracking-tight mb-5">
-                Veja aqui a história da <span className="text-[#cd146e]">LATec</span>
+                Veja aqui a história da <span className="text-[#cd146e]">LATEC</span>
               </h1>
               <p className="text-gray-500 text-base md:text-xl leading-relaxed mb-8 max-w-lg">
                 Aqui, o campus é digital e cabe no bolso: você estuda onde e quando quiser, com certificação reconhecida e suporte humanizado ao seu lado.
@@ -334,7 +334,7 @@ export default function Sobre() {
                 Sob a liderança do empresário educacional <strong className="text-gray-900 font-bold">Fredison Carneiro</strong>, a LATec consolidou uma abordagem inovadora, unindo tecnologia, acessibilidade e excelência acadêmica. Nossa missão é formar profissionais qualificados com ensino acessível, tecnológico e voltado para as demandas da indústria e do comércio, contribuindo para o desenvolvimento econômico e social do Espírito Santo e do Brasil.
               </p>
               <p>
-                Nossa visão é ser reconhecida pelos alunos e empresários da indústria como a principal referência em educação técnica de qualidade no Espírito Santo, contribuindo ativamente para a transformação social da região. Hoje, a <strong className="text-gray-900 font-bold">LA Tec</strong> segue transformando vidas através da educação técnica, preparando profissionais para construir carreiras sólidas e um futuro promissor.
+                Nossa visão é ser reconhecida pelos alunos e empresários da indústria como a principal referência em educação técnica de qualidade no Espírito Santo, contribuindo ativamente para a transformação social da região. Hoje, a <strong className="text-gray-900 font-bold">LATec</strong> segue transformando vidas através da educação técnica, preparando profissionais para construir carreiras sólidas e um futuro promissor.
               </p>
             </div>
           </div>
@@ -360,7 +360,7 @@ export default function Sobre() {
             <div className="relative w-full aspect-[4/3] md:aspect-[1.35/1] rounded-[48px_120px_40px_140px] overflow-hidden shadow-[0_30px_70px_rgba(15,23,42,0.18)] z-10">
               <img
                 src={fotoHistoria || imagemInstitucional}
-                alt="Alunos LA Tec"
+                alt="Alunos LATec"
                 className="w-full h-full object-cover object-center"
               />
             </div>
@@ -385,7 +385,7 @@ export default function Sobre() {
       <section ref={refSecaoDestaques} className="relative max-w-6xl mx-auto px-6 pt-4 pb-20 overflow-hidden">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-[40px] font-black text-[#0f172a] tracking-tight mb-3">
-            Por que escolher a <span className="text-[#cd146e]">LATec</span>
+            Por que escolher a <span className="text-[#cd146e]">LATEC</span>
           </h2>
           <p className="text-gray-500 font-medium text-base md:text-lg max-w-xl mx-auto">
             Educação acessível e certificação reconhecida pelo SISTEC para impulsionar a sua carreira.
@@ -448,7 +448,7 @@ export default function Sobre() {
         <div className="bg-[#cd146e] pt-8 pb-16 md:pt-20 md:pb-28">
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <h2 className="text-2xl md:text-4xl font-black text-white text-center mb-8 md:mb-10 tracking-tight -mt-4 md:-mt-8">
-              Acompanhe a <span className="text-black">LATec</span>
+              Acompanhe a <span className="text-black">LATEC</span>
             </h2>
             <div className="flex flex-wrap justify-center gap-6 md:gap-10">
               {REDES_SOCIAIS_CONFIG.map(({ key, label }) => (
@@ -509,7 +509,7 @@ export default function Sobre() {
           </h2>
 
           <p className="text-gray-600 font-medium text-sm md:text-base max-w-xl leading-relaxed mb-12">
-            A história da LA Tec é construída diariamente por alunos, professores e colaboradores que acreditam no poder transformador da educação.
+            A história da LATec é construída diariamente por alunos, professores e colaboradores que acreditam no poder transformador da educação.
 
 Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades e desenvolvimento profissional para ajudar milhares de estudantes a conquistarem seus objetivos.
           </p>

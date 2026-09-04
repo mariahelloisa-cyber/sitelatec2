@@ -3236,7 +3236,7 @@ async function handleEliminarNoticia(id) {
                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-4xl">
                   <h3 className="text-base font-black uppercase text-gray-900 mb-1 tracking-wide">Carrossel 3D (Home)</h3>
                   <p className="text-xs text-gray-400 mb-6">
-                    Até 12 fotos que giram no carrossel 3D da Home, na seção "Faça igual a eles, e se junte a LATEC". Envie pelo menos {CARROSSEL_3D_MINIMO} para substituir as fotos de exemplo — os campos vazios são ignorados.
+                    Até 12 fotos que giram no carrossel 3D da Home, na seção "Façam como eles, juntem-se à LATEC também!". Envie pelo menos {CARROSSEL_3D_MINIMO} para substituir as fotos de exemplo — os campos vazios são ignorados.
                   </p>
                   <form onSubmit={handleSalvarCarrossel3D} className="flex flex-col gap-6">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -3582,7 +3582,7 @@ async function handleEliminarNoticia(id) {
       <section className="w-full bg-white pt-16 md:pt-20 pb-4 md:pb-6">
         <div className="max-w-3xl mx-auto px-4 text-center mb-10">
           <h2 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">
-            Faça igual a eles, e se junte a <span className="text-[#cd146e]">LATEC</span>
+            Façam como eles, juntem-se à <span className="text-[#cd146e]">LATEC</span>!
           </h2>
         </div>
         <div className="w-full h-[320px] md:h-[420px]">

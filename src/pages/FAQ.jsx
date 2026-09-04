@@ -188,7 +188,7 @@ export default function FAQ() {
             href="https://wa.me/seu-numero"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex bg-gradient-to-r from-[#cd146e] to-[#4259a4] text-white text-sm font-extrabold px-12 py-4 rounded-full shadow-lg shadow-[#cd146e]/30 hover:opacity-95 transition-all transform active:scale-[0.98] tracking-wide uppercase"
+            className="animate-pulse-destaque inline-flex bg-gradient-to-r from-[#cd146e] to-[#4259a4] text-white text-sm font-extrabold px-12 py-4 rounded-full hover:opacity-95 active:scale-[0.98] tracking-wide uppercase will-change-transform"
           >
             Falar no WhatsApp
           </a>

@@ -1,5 +1,5 @@
 import ListaCursos from './ListaCursos';
-import heroTecnologos from '../assets/fundoo.webp';
+import heroTecnologos from '../assets/bannertecnologo.png';
 
 // Página do tipo "Tecnólogos": mesma estrutura do catálogo, sem as abas de
 // filtro e com a sua própria hero.

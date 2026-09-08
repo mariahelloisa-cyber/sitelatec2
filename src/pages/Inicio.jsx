@@ -40,6 +40,7 @@ import ParticleText from '../components/ParticleText';
 import RoundCarousel from '../components/RoundCarousel';
 import { parseGradeCurricular, serializeGradeCurricular } from '../utils/gradeCurricular';
 import { parseBlocosConteudo, serializeBlocosConteudo } from '../utils/blocosConteudo';
+import { nomeArquivoSeguro } from '../utils/nomeArquivo';
 
 // --- Helpers para o formulário estruturado de Grade Curricular / Conteúdo do admin ---
 function criarDisciplinaVazia() {
@@ -285,7 +286,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
 
     try {
       setMensagemStatus("⏳ Fazendo upload da imagem...");
-      const nomeArquivo = `${Date.now()}-${arquivo.name}`;
+      const nomeArquivo = nomeArquivoSeguro(arquivo.name);
 
       // 1. Envia o arquivo para a pasta (Bucket) do Supabase
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -332,7 +333,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
 
     try {
       setMensagemStatus("⏳ Guardando selo e fazendo upload da imagem...");
-      const nomeArquivo = `selo-${Date.now()}-${arquivo.name}`;
+      const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'selo');
 
       // 1. Upload da imagem para o bucket 'banners'
       const { error: uploadError } = await supabase.storage
@@ -408,7 +409,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
 
     try {
       setMensagemStatus("⏳ Guardando diferencial e fazendo upload da imagem...");
-      const nomeArquivo = `diferencial-${Date.now()}-${arquivo.name}`;
+      const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'diferencial');
 
       // 1. Upload da imagem para o bucket 'banners'
       const { error: uploadError } = await supabase.storage
@@ -479,7 +480,7 @@ async function handleAdicionarNoticia(e) {
 
   try {
     setMensagemStatus("⏳ Publicando notícia...");
-    const nomeArquivo = `noticia-${Date.now()}-${arquivo.name}`;
+    const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'noticia');
 
     await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
     const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -711,7 +712,7 @@ async function handleEliminarNoticia(id) {
 
       // Se o usuário selecionou uma nova imagem, faz o upload dela
       if (arquivo) {
-        const nomeArquivo = `noticia-${Date.now()}-${arquivo.name}`;
+        const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'noticia');
         const { error: uploadError } = await supabase.storage
           .from('banners')
           .upload(nomeArquivo, arquivo);
@@ -924,7 +925,7 @@ async function handleEliminarNoticia(id) {
       let imagemUrl = "";
 
       if (arquivo) {
-        const nomeArquivo = `curso-destaque-${Date.now()}-${arquivo.name}`;
+        const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'curso-destaque');
         const { error: uploadError } = await supabase.storage
           .from('banners')
           .upload(nomeArquivo, arquivo);
@@ -1045,7 +1046,7 @@ async function handleEliminarNoticia(id) {
 
     try {
       setMensagemStatus("⏳ Fazendo upload do banner lateral...");
-      const nomeArquivo = `banner-lateral-${Date.now()}-${arquivo.name}`;
+      const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'banner-lateral');
 
       const { error: uploadError } = await supabase.storage
         .from('banners')
@@ -1193,7 +1194,7 @@ async function handleEliminarNoticia(id) {
       let imagemUrlFinal = destaquesSobreForm.imagem_url;
 
       if (arquivo) {
-        const nomeArquivo = `sobre-destaque-${Date.now()}-${arquivo.name}`;
+        const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'sobre-destaque');
         const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1263,7 +1264,7 @@ async function handleEliminarNoticia(id) {
         const arquivoInput = document.getElementById(`imagem-rede-${key}`);
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
-          const nomeArquivo = `sobre-rede-${key}-${Date.now()}-${arquivo.name}`;
+          const nomeArquivo = nomeArquivoSeguro(arquivo.name, `sobre-rede-${key}`);
           const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1329,7 +1330,7 @@ async function handleEliminarNoticia(id) {
         const arquivoInput = document.getElementById(`imagem-galeria-${campo}`);
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
-          const nomeArquivo = `sobre-galeria-${campo}-${Date.now()}-${arquivo.name}`;
+          const nomeArquivo = nomeArquivoSeguro(arquivo.name, `sobre-galeria-${campo}`);
           const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1406,7 +1407,7 @@ async function handleEliminarNoticia(id) {
         const arquivoInput = document.getElementById(`imagem-carrossel3d-${campo}`);
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
-          const nomeArquivo = `carrossel3d-${campo}-${Date.now()}-${arquivo.name}`;
+          const nomeArquivo = nomeArquivoSeguro(arquivo.name, `carrossel3d-${campo}`);
           const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1473,7 +1474,7 @@ async function handleEliminarNoticia(id) {
 
     try {
       setMensagemStatus("⏳ Fazendo upload da foto de Nossa História...");
-      const nomeArquivo = `sobre-historia-${Date.now()}-${arquivo.name}`;
+      const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'sobre-historia');
 
       const { error: uploadError } = await supabase.storage
         .from('banners')
@@ -1613,7 +1614,7 @@ async function handleEliminarNoticia(id) {
 
       let imagemUrl = "";
       if (arquivoImagem) {
-        const nomeArquivo = `curso-${Date.now()}-${arquivoImagem.name}`;
+        const nomeArquivo = nomeArquivoSeguro(arquivoImagem.name, 'curso');
         const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivoImagem);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1622,7 +1623,7 @@ async function handleEliminarNoticia(id) {
 
       let imagemCapaUrl = "";
       if (arquivoImagemCapa) {
-        const nomeArquivoCapa = `curso-capa-${Date.now()}-${arquivoImagemCapa.name}`;
+        const nomeArquivoCapa = nomeArquivoSeguro(arquivoImagemCapa.name, 'curso-capa');
         const { error: uploadCapaError } = await supabase.storage.from('banners').upload(nomeArquivoCapa, arquivoImagemCapa);
         if (uploadCapaError) throw uploadCapaError;
         const { data: urlCapaData } = supabase.storage.from('banners').getPublicUrl(nomeArquivoCapa);
@@ -1797,7 +1798,7 @@ async function handleEliminarNoticia(id) {
 
       // Só substitui as imagens se o admin escolheu um novo arquivo
       if (arquivoImagem) {
-        const nomeArquivo = `curso-${Date.now()}-${arquivoImagem.name}`;
+        const nomeArquivo = nomeArquivoSeguro(arquivoImagem.name, 'curso');
         const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivoImagem);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
@@ -1805,7 +1806,7 @@ async function handleEliminarNoticia(id) {
       }
 
       if (arquivoImagemCapa) {
-        const nomeArquivoCapa = `curso-capa-${Date.now()}-${arquivoImagemCapa.name}`;
+        const nomeArquivoCapa = nomeArquivoSeguro(arquivoImagemCapa.name, 'curso-capa');
         const { error: uploadCapaError } = await supabase.storage.from('banners').upload(nomeArquivoCapa, arquivoImagemCapa);
         if (uploadCapaError) throw uploadCapaError;
         const { data: urlCapaData } = supabase.storage.from('banners').getPublicUrl(nomeArquivoCapa);

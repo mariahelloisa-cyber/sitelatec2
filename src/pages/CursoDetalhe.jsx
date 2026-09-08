@@ -16,7 +16,6 @@ import {
 import Navbar from '../components/Navbar';
 import CursoCard from '../components/CursoCard';
 import { supabase } from '../supabaseClient';
-import { useFavoritosStore } from '../store/favoritosStore';
 import { parseGradeCurricular } from '../utils/gradeCurricular';
 import { parseBlocosConteudo } from '../utils/blocosConteudo';
 import {
@@ -25,6 +24,8 @@ import {
   textoCertificacao,
 } from '../utils/certificadoras';
 import imagemFundoHero from '../assets/imghero.webp';
+
+const WHATSAPP_NUMERO = '5527998392172';
 
 const BENEFICIOS = [
   {
@@ -157,7 +158,7 @@ function ItemFAQ({ pergunta, resposta, aberto, onToggle }) {
 }
 
 // --- Card de inscrição: fica sticky ao lado do conteúdo no desktop ---
-function CardCompra({ curso, favoritado, onFavoritar }) {
+function CardCompra({ curso, linkWhatsapp }) {
   return (
     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
       <div className="relative w-full h-48 sm:h-52 bg-gray-800">
@@ -198,16 +199,14 @@ function CardCompra({ curso, favoritado, onFavoritar }) {
           )}
         </div>
 
-        <button
-          onClick={onFavoritar}
-          className={`w-full py-4 rounded-full font-black uppercase tracking-wider text-sm transition-all active:scale-[0.98] cursor-pointer shadow-lg flex items-center justify-center gap-2 ${
-            favoritado
-              ? 'bg-white text-[#cd146e] border-2 border-[#cd146e]'
-              : 'bg-[#cd146e] hover:bg-[#a61058] text-white'
-          }`}
+        <a
+          href={linkWhatsapp}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full py-4 rounded-full font-black uppercase tracking-wider text-sm transition-all active:scale-[0.98] cursor-pointer shadow-lg flex items-center justify-center gap-2 bg-[#cd146e] hover:bg-[#a61058] text-white"
         >
-          {favoritado ? 'Matriculado' : 'Matricule-se'}
-        </button>
+          Matricule-se
+        </a>
       </div>
     </div>
   );
@@ -215,8 +214,6 @@ function CardCompra({ curso, favoritado, onFavoritar }) {
 
 export default function CursoDetalhe() {
   const { id } = useParams();
-  const alternarFavorito = useFavoritosStore((state) => state.alternarFavorito);
-  const favoritos = useFavoritosStore((state) => state.favoritos);
 
   const [curso, setCurso] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -276,19 +273,13 @@ export default function CursoDetalhe() {
     setSemestresAbertos((prev) => ({ ...prev, [indice]: !prev[indice] }));
   }
 
-  const idFavorito = curso ? `curso-admin-${curso.id}` : null;
-  const cursoFavoritado = curso ? favoritos.some((item) => item.id === idFavorito) : false;
-
-  const handleFavoritar = () => {
-    if (!curso) return;
-    alternarFavorito({
-      id: idFavorito,
-      titulo: curso.titulo,
-      preco: curso.preco || 0,
-      horas: curso.carga_horaria || '',
-      precoOculto: true,
-    });
-  };
+  // Tanto "Matricule-se" quanto "Quero garantir minha vaga" levam direto ao
+  // WhatsApp, com o curso já preenchido na mensagem.
+  const linkWhatsapp = curso
+    ? `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(
+        `Olá! Quero garantir minha vaga no curso ${curso.titulo}.`
+      )}`
+    : `https://wa.me/${WHATSAPP_NUMERO}`;
 
   if (carregando) {
     return (
@@ -345,7 +336,7 @@ export default function CursoDetalhe() {
           <p className="text-white/85 text-base md:text-[17px] font-medium leading-relaxed max-w-lg mb-7">{curso.descricao}</p>
 
           <a
-            href={`https://wa.me/5527998392172?text=${encodeURIComponent(`Olá! Quero garantir minha vaga no curso ${curso.titulo}.`)}`}
+            href={linkWhatsapp}
             target="_blank"
             rel="noreferrer"
             className="animate-pulse-destaque inline-flex items-center justify-center bg-[#cd146e] hover:bg-[#a61058] text-white text-sm font-black uppercase tracking-wide px-8 py-4 rounded-full active:scale-[0.98] mb-7 will-change-transform"
@@ -389,7 +380,7 @@ export default function CursoDetalhe() {
         {/* --- COLUNA LATERAL: CARD DE COMPRA (logo após o hero no mobile; sobrepõe a hero e fica sticky no desktop) --- */}
         <div className="lg:order-2 lg:-mt-80">
           <div className="lg:sticky lg:top-24">
-            <CardCompra curso={curso} favoritado={cursoFavoritado} onFavoritar={handleFavoritar} />
+            <CardCompra curso={curso} linkWhatsapp={linkWhatsapp} />
           </div>
         </div>
 

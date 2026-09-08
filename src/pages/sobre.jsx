@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import ParallaxGallery from '../components/ParallaxGallery';
+import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
 import imagemInstitucional from '../assets/vagas.webp';
 import selo6 from '../assets/selo6.webp';
@@ -556,6 +557,7 @@ Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades
       </section>
       )}
 
+      <CtaWhatsapp />
     </div>
   );
 }

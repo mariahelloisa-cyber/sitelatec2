@@ -46,3 +46,30 @@ html {
     animation: none;
   }
 }
+
+/* Ícone ((•)) de sinal/transmissão: o ponto central fica fixo e as ondas
+   piscam em sequência, de dentro para fora, simulando o sinal transmitindo. */
+@keyframes ondaSinal {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+.onda-sinal-interna,
+.onda-sinal-externa {
+  animation: ondaSinal 1.4s ease-in-out infinite;
+}
+
+.onda-sinal-interna {
+  animation-delay: 0.15s;
+}
+
+.onda-sinal-externa {
+  animation-delay: 0.45s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onda-sinal-interna,
+  .onda-sinal-externa {
+    animation: none;
+  }
+}

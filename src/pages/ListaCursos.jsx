@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import CursoListItem from '../components/CursoListItem';
+import CursoCard from '../components/CursoCard';
+import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
 import { listaCursosGiga } from './cursosData';
 import imagemFundo from '../assets/imghero.webp';
@@ -21,11 +22,115 @@ function getOrdemCategoria(nomeCategoria) {
   return indice === -1 ? ORDEM_CATEGORIAS.length : indice;
 }
 
-export default function ListaCursos() {
+// A carga horária vem em formatos diferentes ("1600" no admin, "300h" na
+// lista fixa). Normaliza tudo para "1600h" e assim os filtros batem.
+function normalizarCarga(valor) {
+  const texto = String(valor ?? '').trim();
+  if (!texto) return '';
+  const numero = texto.match(/\d+/);
+  return numero ? `${numero[0]}h` : texto;
+}
+
+function normalizarDuracao(valor) {
+  return String(valor ?? '').trim();
+}
+
+// Seção recolhível da barra lateral de filtros
+function SecaoFiltro({ titulo, aberta, onToggle, children }) {
+  return (
+    <div className="border-b border-gray-200 py-[18px]">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between text-left cursor-pointer group"
+      >
+        <span className="text-[17px] font-bold text-[#1a103c] group-hover:text-[#cd146e] transition-colors">
+          {titulo}
+        </span>
+        <svg
+          className={`w-[18px] h-[18px] text-gray-400 transition-transform duration-200 ${aberta ? '' : 'rotate-180'}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
+
+      {aberta && <div className="mt-4 flex flex-col gap-3 max-h-72 overflow-y-auto pr-1">{children}</div>}
+    </div>
+  );
+}
+
+function OpcaoCheckbox({ label, marcada, onChange }) {
+  return (
+    <label className="flex items-center gap-3 cursor-pointer group">
+      <input
+        type="checkbox"
+        checked={marcada}
+        onChange={onChange}
+        className="w-[18px] h-[18px] rounded border-gray-300 accent-[#cd146e] cursor-pointer shrink-0"
+      />
+      <span className="text-[14.5px] text-gray-600 group-hover:text-[#cd146e] transition-colors capitalize leading-snug">
+        {label}
+      </span>
+    </label>
+  );
+}
+
+// Hero padrão da página /cursos (catálogo completo). As páginas por tipo
+// (Técnicos, Tecnólogos, Profissionalizantes) passam a sua própria hero.
+const HERO_PADRAO = {
+  tag: 'Catálogo de Cursos',
+  tituloInicio: 'Nossos ',
+  tituloDestaque: 'Cursos',
+  descricaoInicio: 'Explore nosso catálogo completo e encontre o curso ideal para ',
+  descricaoDestaque: 'transformar sua carreira.',
+  imagem: imagemFundo,
+};
+
+export default function ListaCursos({
+  hero = HERO_PADRAO,
+  // Lista de categorias exibidas nesta página (null = todas).
+  categoriasPermitidas = null,
+  // Filtro de categoria: usado só na página de Profissionalizantes, para
+  // separar entre comuns, avançados e premium.
+  mostrarFiltroCategoria = false,
+  tituloListagem = 'TODOS OS CURSOS',
+}) {
   const [searchParams] = useSearchParams();
   const [pesquisa, setPesquisa] = useState(() => searchParams.get('busca') || '');
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todas');
-  const [filtroCategoriaAberto, setFiltroCategoriaAberto] = useState(false);
+
+  // Filtros da barra lateral (múltipla escolha em cada seção)
+  const [categoriasSelecionadas, setCategoriasSelecionadas] = useState([]);
+  const [duracoesSelecionadas, setDuracoesSelecionadas] = useState([]);
+  const [cargasSelecionadas, setCargasSelecionadas] = useState([]);
+
+  // Seções abertas/fechadas e a barra lateral no mobile
+  const [secoesAbertas, setSecoesAbertas] = useState({ categoria: true, duracao: true, carga: true });
+  const [filtrosMobileAbertos, setFiltrosMobileAbertos] = useState(false);
+
+  const alternarSecao = (chave) =>
+    setSecoesAbertas((atual) => ({ ...atual, [chave]: !atual[chave] }));
+
+  // Marca/desmarca um valor dentro de uma seção de filtro
+  const alternarValor = (setLista) => (valor) =>
+    setLista((atual) => (atual.includes(valor) ? atual.filter((v) => v !== valor) : [...atual, valor]));
+
+  const alternarCategoria = alternarValor(setCategoriasSelecionadas);
+  const alternarDuracao = alternarValor(setDuracoesSelecionadas);
+  const alternarCarga = alternarValor(setCargasSelecionadas);
+
+  const limparFiltros = () => {
+    setCategoriasSelecionadas([]);
+    setDuracoesSelecionadas([]);
+    setCargasSelecionadas([]);
+  };
+
+  const totalFiltrosAtivos =
+    categoriasSelecionadas.length + duracoesSelecionadas.length + cargasSelecionadas.length;
+
   const alternarFavorito = useFavoritosStore((state) => state.alternarFavorito);
   const favoritos = useFavoritosStore((state) => state.favoritos);
 
@@ -63,7 +168,15 @@ export default function ListaCursos() {
   // Proteção contra dados vazios
   const dadosCursos = Array.isArray(listaCursosGiga) ? listaCursosGiga : [];
 
-  // Abas de categoria: começa com as categorias fixas de sempre e soma
+  // Quando a página é de um tipo específico (Técnicos, Tecnólogos...), só as
+  // categorias daquele tipo entram na listagem e nos filtros.
+  const categoriaPermitida = (nomeCategoria) => {
+    if (!categoriasPermitidas) return true;
+    const chave = (nomeCategoria || '').trim().toLowerCase();
+    return categoriasPermitidas.some((c) => c.trim().toLowerCase() === chave);
+  };
+
+  // Opções de categoria: começa com as categorias fixas de sempre e soma
   // automaticamente qualquer categoria nova cadastrada pelo admin (tabela
   // "categorias") ou já usada em algum curso cadastrado — sem precisar
   // mexer no código toda vez que uma categoria nova é criada.
@@ -90,82 +203,80 @@ export default function ListaCursos() {
       return a.localeCompare(b, 'pt-BR');
     });
 
-    return ['Todas', ...ordenadas];
-  }, [categoriasDb, cursosCadastrados]);
+    return ordenadas.filter((nome) => {
+      if (!categoriasPermitidas) return true;
+      const chave = nome.trim().toLowerCase();
+      return categoriasPermitidas.some((c) => c.trim().toLowerCase() === chave);
+    });
+  }, [categoriasDb, cursosCadastrados, categoriasPermitidas]);
 
-  // Helper para renderizar os ícones idênticos aos da imagem nas abas de categorias
-  const getCategoriaIcon = (cat) => {
-    switch(cat.toLowerCase()) {
-      case 'todas':
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
-          </svg>
-        );
-      case 'profissionalizantes premium':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.243.577 1.835l-3.97 2.88a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.88a1 1 0 00-1.176 0l-3.97 2.88c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.97-2.88c-.783-.57-.384-1.835.577-1.835h4.906a1 1 0 00.95-.69l1.519-4.674z" />
-          </svg>
-        );
-      case 'profissionalizantes comuns':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        );
-      case 'profissionalizantes avançados':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        );
-      case 'técnicos':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-          </svg>
-        );
-      case 'tecnólogos':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443" />
-          </svg>
-        );
-      case 'eja':
-        return (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        );
-      default:
-        return null;
+  // Opções de Duração e Carga horária montadas a partir dos próprios dados,
+  // para não precisar manter listas fixas no código.
+  const opcoesDuracao = useMemo(() => {
+    const vistas = new Map();
+    for (const curso of cursosCadastrados) {
+      if (!categoriaPermitida(curso.categoria)) continue;
+      const valor = normalizarDuracao(curso.duracao);
+      if (!valor) continue;
+      const chave = valor.toLowerCase();
+      if (!vistas.has(chave)) vistas.set(chave, valor);
     }
+    return Array.from(vistas.values()).sort((a, b) =>
+      a.localeCompare(b, 'pt-BR', { numeric: true })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursosCadastrados, categoriasPermitidas]);
+
+  const opcoesCarga = useMemo(() => {
+    const vistas = new Set();
+    for (const curso of cursosCadastrados) {
+      if (!categoriaPermitida(curso.categoria)) continue;
+      const valor = normalizarCarga(curso.carga_horaria);
+      if (valor) vistas.add(valor);
+    }
+    for (const curso of dadosCursos) {
+      if (!curso || !categoriaPermitida(curso.categoriaNome)) continue;
+      const valor = normalizarCarga(curso.horas);
+      if (valor) vistas.add(valor);
+    }
+    return Array.from(vistas).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursosCadastrados, dadosCursos, categoriasPermitidas]);
+
+  // Um curso passa no filtro quando bate em TODAS as seções marcadas
+  // (dentro de cada seção, os valores marcados funcionam como "ou").
+  const passaNosFiltros = ({ categoria, duracao, carga }) => {
+    const cat = (categoria || '').trim().toLowerCase();
+    if (!categoriaPermitida(categoria)) return false;
+    if (categoriasSelecionadas.length > 0 && !categoriasSelecionadas.includes(cat)) return false;
+    if (duracoesSelecionadas.length > 0 && !duracoesSelecionadas.includes((duracao || '').toLowerCase())) return false;
+    if (cargasSelecionadas.length > 0 && !cargasSelecionadas.includes(carga || '')) return false;
+    return true;
   };
 
-  // Filtro de Busca e Categoria
+  // Lista fixa (cursosData) — não tem duração cadastrada
   const cursosFiltrados = dadosCursos.filter((curso) => {
     if (!curso) return false;
     const nomeCurso = curso.nome || curso.titulo || "";
-    const categoriaCurso = curso.categoriaNome || "";
+    if (!nomeCurso.toLowerCase().includes(pesquisa.toLowerCase())) return false;
 
-    const combinaTexto = nomeCurso.toLowerCase().includes(pesquisa.toLowerCase());
-    const combinaCategoria = categoriaSelecionada === 'Todas' || 
-                             categoriaCurso.toLowerCase() === categoriaSelecionada.toLowerCase();
-
-    return combinaTexto && combinaCategoria;
+    return passaNosFiltros({
+      categoria: curso.categoriaNome,
+      duracao: '',
+      carga: normalizarCarga(curso.horas),
+    });
   }).sort((a, b) => getOrdemCategoria(a.categoriaNome) - getOrdemCategoria(b.categoriaNome));
 
-  // Cursos cadastrados pelo admin, filtrados pela mesma busca e categoria da lista
+  // Cursos cadastrados pelo admin, com a mesma busca e os mesmos filtros
   const cursosCadastradosFiltrados = cursosCadastrados.filter((curso) => {
     const nomeCurso = curso.titulo || "";
-    const categoriaCurso = curso.categoria || "";
+    if (!nomeCurso.toLowerCase().includes(pesquisa.toLowerCase())) return false;
 
-    const combinaTexto = nomeCurso.toLowerCase().includes(pesquisa.toLowerCase());
-    const combinaCategoria = categoriaSelecionada === 'Todas' ||
-                             categoriaCurso.toLowerCase() === categoriaSelecionada.toLowerCase();
-
-    return combinaTexto && combinaCategoria;
+    return passaNosFiltros({
+      categoria: curso.categoria,
+      duracao: normalizarDuracao(curso.duracao),
+      carga: normalizarCarga(curso.carga_horaria),
+    });
   }).sort((a, b) => getOrdemCategoria(a.categoria) - getOrdemCategoria(b.categoria));
 
   const totalCursosEncontrados = cursosCadastradosFiltrados.length + cursosFiltrados.length;
@@ -174,169 +285,178 @@ export default function ListaCursos() {
     <div className="w-full min-h-screen bg-[#fafafa] text-gray-900 antialiased pb-20 flex flex-col">
       <Navbar />
 
-      {/* 1. HERO SECTION CORRIGIDA (Preenchimento total da tela sem cortes nem espaços brancos) */}
-      <div 
-        className="relative w-full bg-cover bg-center py-14 md:py-24 border-b border-gray-100 flex items-center min-h-[420px] md:min-h-[480px]" 
-        style={{ backgroundImage: `url(${imagemFundo})` }}
-      >
-        <div className="max-w-6xl w-full mx-auto px-6 relative z-10">
-          
-          {/* Caixa de Conteúdo restrita à metade da tela (md:max-w-xl) para nunca sobrepor a imagem da direita */}
-          <div className="w-full max-w-md md:max-w-xl flex flex-col items-start text-left">
-            
-            {/* Tag: Catálogo de Cursos */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white shadow-sm border border-gray-100 rounded-xl mb-4">
-              <svg className="w-3.5 h-3.5 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <span className="text-[10px] font-extrabold text-[#cd146e] tracking-wider uppercase">
-                Catálogo de Cursos
-              </span>
-            </div>
+      {/* 1. HERO — faixa de imagem (o título fica logo abaixo, junto do conteúdo) */}
+      <div
+        className="w-full bg-cover bg-center border-b border-gray-100 min-h-[420px] md:min-h-[480px]"
+        style={{ backgroundImage: `url(${hero.imagem || imagemFundo})` }}
+        role="presentation"
+      />
 
-            {/* Título Principal */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#1a103c] mb-4 tracking-tight">
-              Nossos <span className="text-[#cd146e]">Cursos</span>
-            </h1>
-
-            {/* Descrição */}
-            <p className="text-gray-500 text-sm md:text-base font-medium max-w-md mb-4 leading-relaxed">
-              Explore nosso catálogo completo e encontre o curso ideal para <span className="text-[#cd146e] font-bold">transformar sua carreira.</span>
-            </p>
-
-            {/* Info Selo MEC */}
-            <div className="flex items-center gap-2 text-gray-500 text-xs md:text-sm font-medium mb-8">
-              <svg className="w-4 h-4 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>Todos os cursos são <span className="text-[#cd146e] font-bold">reconhecidos pelo MEC.</span></span>
-            </div>
-
-            {/* Barra de Pesquisa */}
-            <div className="relative w-full bg-white rounded-full shadow-lg border border-gray-100 p-1 flex items-center">
-              <span className="pl-4 text-gray-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <input
-                type="text"
-                placeholder="Pesquisar curso por nome, área ou palavra-chave..."
-                value={pesquisa}
-                onChange={(e) => setPesquisa(e.target.value)}
-                className="w-full pl-2 pr-4 py-3 bg-transparent text-xs md:text-sm text-gray-700 placeholder-gray-400 focus:outline-none font-medium"
-              />
-              <button className="bg-[#9333ea] hover:bg-[#7e22ce] text-white p-2.5 md:p-3 rounded-full transition-all flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-
+      {/* 2. TÍTULO DA PÁGINA (abaixo da hero, logo acima dos filtros e cursos) */}
+      <div className="max-w-[1440px] w-full mx-auto px-6 mt-10">
+        {hero.tag && (
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white shadow-sm border border-gray-100 rounded-xl mb-4">
+            <svg className="w-3.5 h-3.5 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span className="text-[10px] font-extrabold text-[#cd146e] tracking-wider uppercase">
+              {hero.tag}
+            </span>
           </div>
-        </div>
+        )}
+
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-[#1a103c] tracking-tight">
+          {hero.tituloInicio}<span className="text-[#cd146e]">{hero.tituloDestaque}</span>
+        </h1>
+
+        {(hero.descricaoInicio || hero.descricaoDestaque) && (
+          <p className="text-gray-500 text-sm md:text-base font-medium max-w-xl mt-3 leading-relaxed">
+            {hero.descricaoInicio}
+            <span className="text-[#cd146e] font-bold">{hero.descricaoDestaque}</span>
+          </p>
+        )}
       </div>
 
-      {/* 2. FILTROS E CONTEÚDO */}
-      <div className="max-w-6xl w-full mx-auto px-6 mt-10">
-        
-        {/* Abas de Categorias (desktop): todas as pills lado a lado */}
-        <div className="hidden md:flex flex-wrap gap-3 mb-6 justify-start">
-          {categoriasFiltro.map((cat) => {
-            const isSelected = categoriaSelecionada.toLowerCase() === cat.toLowerCase();
-            return (
-              <button
-                key={`btn-filtro-${cat}`}
-                onClick={() => setCategoriaSelecionada(cat)}
-                className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
-                    : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {getCategoriaIcon(cat)}
-                <span className="capitalize">{cat}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* 3. FILTROS (BARRA LATERAL) + CONTEÚDO */}
+      <div className="max-w-[1440px] w-full mx-auto px-6 mt-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
 
-        {/* Abas de Categorias (mobile): "Todas" + botão que abre a lista de categorias */}
-        <div className="md:hidden mb-6">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => { setCategoriaSelecionada('Todas'); setFiltroCategoriaAberto(false); }}
-              className={`px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer shrink-0 ${
-                categoriaSelecionada.toLowerCase() === 'todas'
-                  ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
-                  : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {getCategoriaIcon('Todas')}
-              <span>Todas</span>
-            </button>
+        {/* --- BARRA LATERAL DE FILTROS --- */}
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2.5">
+              <svg className="w-6 h-6 text-[#1a103c]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M7 12h10M11 18h2" />
+              </svg>
+              <h2 className="text-xl font-bold text-[#1a103c]">Filtrar</h2>
+              {totalFiltrosAtivos > 0 && (
+                <span className="bg-[#cd146e] text-white text-[11px] font-black w-5.5 h-5.5 rounded-full flex items-center justify-center">
+                  {totalFiltrosAtivos}
+                </span>
+              )}
+            </div>
 
+            {/* No mobile os filtros ficam recolhidos atrás deste botão */}
             <button
-              onClick={() => setFiltroCategoriaAberto((v) => !v)}
-              className={`flex-1 min-w-0 px-4 py-2.5 rounded-full text-xs font-bold transition-all duration-200 border flex items-center justify-center gap-2 cursor-pointer ${
-                categoriaSelecionada.toLowerCase() !== 'todas'
-                  ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
-                  : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
-              }`}
+              type="button"
+              onClick={() => setFiltrosMobileAbertos((v) => !v)}
+              className="lg:hidden text-xs font-bold text-[#cd146e] cursor-pointer px-3 py-1.5 rounded-full border border-[#cd146e]/30"
             >
-              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 9h12M10 15h4" />
-              </svg>
-              <span className="capitalize truncate">
-                {categoriaSelecionada.toLowerCase() === 'todas' ? 'Filtrar por categoria' : categoriaSelecionada}
-              </span>
-              <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${filtroCategoriaAberto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
+              {filtrosMobileAbertos ? 'Fechar' : 'Abrir filtros'}
             </button>
           </div>
 
-          {filtroCategoriaAberto && (
-            <div className="mt-3 flex flex-wrap gap-2 bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
-              {categoriasFiltro.filter((cat) => cat.toLowerCase() !== 'todas').map((cat) => {
-                const isSelected = categoriaSelecionada.toLowerCase() === cat.toLowerCase();
-                return (
-                  <button
-                    key={`btn-filtro-mobile-${cat}`}
-                    onClick={() => { setCategoriaSelecionada(cat); setFiltroCategoriaAberto(false); }}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 border flex items-center gap-2 cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#cd146e] text-white border-[#cd146e] shadow-sm'
-                        : 'bg-white text-[#1a103c]/80 border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {getCategoriaIcon(cat)}
-                    <span className="capitalize">{cat}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+          <div className={`${filtrosMobileAbertos ? 'block' : 'hidden'} lg:block`}>
+            {totalFiltrosAtivos > 0 && (
+              <button
+                type="button"
+                onClick={limparFiltros}
+                className="text-xs font-bold text-gray-500 hover:text-[#cd146e] transition-colors cursor-pointer"
+              >
+                Limpar filtros
+              </button>
+            )}
 
+            {mostrarFiltroCategoria && categoriasFiltro.length > 0 && (
+              <SecaoFiltro
+                titulo="Categoria"
+                aberta={secoesAbertas.categoria}
+                onToggle={() => alternarSecao('categoria')}
+              >
+                {categoriasFiltro.map((cat) => (
+                  <OpcaoCheckbox
+                    key={`cat-${cat}`}
+                    // A página já se chama "Profissionalizantes": no rótulo
+                    // fica só a faixa (Comuns, Avançados, Premium).
+                    label={cat.replace(/^profissionalizantes\s+/i, '')}
+                    marcada={categoriasSelecionadas.includes(cat.toLowerCase())}
+                    onChange={() => alternarCategoria(cat.toLowerCase())}
+                  />
+                ))}
+              </SecaoFiltro>
+            )}
+
+            {opcoesDuracao.length > 0 && (
+              <SecaoFiltro
+                titulo="Duração"
+                aberta={secoesAbertas.duracao}
+                onToggle={() => alternarSecao('duracao')}
+              >
+                {opcoesDuracao.map((dur) => (
+                  <OpcaoCheckbox
+                    key={`dur-${dur}`}
+                    label={dur}
+                    marcada={duracoesSelecionadas.includes(dur.toLowerCase())}
+                    onChange={() => alternarDuracao(dur.toLowerCase())}
+                  />
+                ))}
+              </SecaoFiltro>
+            )}
+
+            {opcoesCarga.length > 0 && (
+              <SecaoFiltro
+                titulo="Carga horária"
+                aberta={secoesAbertas.carga}
+                onToggle={() => alternarSecao('carga')}
+              >
+                {opcoesCarga.map((carga) => (
+                  <OpcaoCheckbox
+                    key={`carga-${carga}`}
+                    label={carga}
+                    marcada={cargasSelecionadas.includes(carga)}
+                    onChange={() => alternarCarga(carga)}
+                  />
+                ))}
+              </SecaoFiltro>
+            )}
+          </div>
+        </aside>
+
+        {/* --- CONTEÚDO --- */}
+        <div className="flex-1 min-w-0">
+
+          {/* Barra de Pesquisa */}
+          <div className="flex justify-end mb-6">
+            <div className="w-full sm:w-96 flex items-center bg-white rounded-full border border-gray-200 shadow-sm focus-within:border-[#cd146e] transition-colors">
+              <input
+                type="text"
+                placeholder="Procure o curso ideal para você!"
+                value={pesquisa}
+                onChange={(e) => setPesquisa(e.target.value)}
+                className="w-full bg-transparent text-[14.5px] text-gray-700 placeholder-gray-500 pl-6 pr-2 py-3.5 focus:outline-none font-medium rounded-full"
+              />
+              <span className="pr-6 text-gray-700 shrink-0">
+                <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+            </div>
+          </div>
         {/* Quantidade Encontrada */}
-        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-bold mb-4 uppercase tracking-wider">
-          <svg className="w-3.5 h-3.5 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+        <div className="flex items-center gap-2 text-xs text-gray-400 font-bold mb-5 uppercase tracking-wider">
+          <svg className="w-4 h-4 text-[#cd146e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
           <span className="text-[#cd146e] font-extrabold">{totalCursosEncontrados}</span> cursos encontrados
         </div>
 
-        {/* Cursos cadastrados pelo admin, exibidos em card acima da listagem */}
+        {/* Cursos cadastrados pelo admin, em grade de cards */}
         {cursosCadastradosFiltrados.length > 0 && (
-          <div className="flex flex-col gap-4 md:gap-5 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
             {cursosCadastradosFiltrados.map((curso) => (
-              <CursoListItem key={curso.id} curso={curso} />
+              <CursoCard key={curso.id} curso={curso} />
             ))}
           </div>
         )}
 
-        {/* 3. LISTAGEM DE CURSOS */}
+        {/* Nas páginas por tipo, se nada foi encontrado, avisa em vez de mostrar a tabela vazia */}
+        {categoriasPermitidas && totalCursosEncontrados === 0 && (
+          <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-sm font-bold text-gray-400 mb-10">
+            Nenhum curso encontrado nesta categoria.
+          </div>
+        )}
+
+        {/* 3. LISTAGEM DE CURSOS (lista estática) */}
+        {(cursosFiltrados.length > 0 || !categoriasPermitidas) && (
         <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
           
           {/* Header da tabela com o Degradê Triplo perfeito (Rosa -> Roxo -> Azul) */}
@@ -346,7 +466,7 @@ export default function ListaCursos() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
               <h2 className="font-extrabold text-xs tracking-wider uppercase">
-                TODOS OS CURSOS
+                {tituloListagem}
               </h2>
             </div>
             <div className="bg-white/20 px-4 py-1 rounded-full backdrop-blur-sm">
@@ -426,8 +546,12 @@ export default function ListaCursos() {
       )}
     </div>
   </div>
+  )}
 
+        </div>
       </div>
+
+      <CtaWhatsapp />
     </div>
   );
 }

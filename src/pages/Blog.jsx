@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
 
 export default function Blog() {
@@ -78,11 +79,11 @@ export default function Blog() {
               </svg>
               <Link to="/" className="hover:text-gray-800 transition-colors">Inicial</Link> 
               <span className="text-gray-300">•</span> 
-              <span className="text-gray-700 font-bold">Blog LA Tec</span>
+              <span className="text-gray-700 font-bold">Blog LATec</span>
             </div>
 
             <span className="text-[#cd146e] font-extrabold text-sm mb-2 block tracking-tight">
-              Blog LA Tec
+              Blog LATec
             </span>
 
             <h1 className="text-3xl md:text-[44px] font-black text-[#0f172a] tracking-tight leading-[1.15] mb-4">
@@ -235,6 +236,8 @@ export default function Blog() {
             )}
           </>
         )}
+
+        <CtaWhatsapp />
       </main>
     </div>
   );

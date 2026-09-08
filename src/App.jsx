@@ -17,6 +17,9 @@ const FAQ = lazy(() => import('./pages/FAQ'));
 const ValidacaoRastreio = lazy(() => import('./pages/ValidacaoRastreio'));
 const Sobre = lazy(() => import('./pages/sobre'));
 const ListaCursos = lazy(() => import('./pages/ListaCursos'));
+const CursosTecnicos = lazy(() => import('./pages/CursosTecnicos'));
+const CursosTecnologos = lazy(() => import('./pages/CursosTecnologos'));
+const CursosProfissionalizantes = lazy(() => import('./pages/CursosProfissionalizantes'));
 const CursoDetalhe = lazy(() => import('./pages/CursoDetalhe'));
 const Login = lazy(() => import('./pages/Login'));
 
@@ -40,6 +43,10 @@ function LayoutGlobal() {
           <Route path="/validacaoRastreio" element={<ValidacaoRastreio />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/cursos" element={<ListaCursos />} />
+          {/* Rotas por tipo de curso — precisam vir antes de /cursos/:id */}
+          <Route path="/cursos/tecnicos" element={<CursosTecnicos />} />
+          <Route path="/cursos/tecnologos" element={<CursosTecnologos />} />
+          <Route path="/cursos/profissionalizantes" element={<CursosProfissionalizantes />} />
           <Route path="/cursos/:id" element={<CursoDetalhe />} />
           <Route path="/login" element={<Login />} />
         </Routes>

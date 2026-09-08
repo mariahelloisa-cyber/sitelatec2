@@ -19,6 +19,11 @@ import { supabase } from '../supabaseClient';
 import { useFavoritosStore } from '../store/favoritosStore';
 import { parseGradeCurricular } from '../utils/gradeCurricular';
 import { parseBlocosConteudo } from '../utils/blocosConteudo';
+import {
+  certificadoPelaLatec,
+  certificadoraParceira,
+  textoCertificacao,
+} from '../utils/certificadoras';
 import imagemFundoHero from '../assets/imghero.webp';
 
 const BENEFICIOS = [
@@ -105,7 +110,7 @@ function TituloSecao({ titulo, destaque, subtitulo }) {
       <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
         {titulo} {destaque && <span className="text-[#cd146e]">{destaque}</span>}
       </h2>
-      {subtitulo && <p className="text-gray-500 text-sm md:text-base mt-3 leading-relaxed">{subtitulo}</p>}
+      {subtitulo && <p className="text-gray-600 text-base md:text-[17px] font-medium mt-3 leading-relaxed">{subtitulo}</p>}
     </div>
   );
 }
@@ -124,7 +129,7 @@ function BlocoConteudo({ titulo, texto, ultimo }) {
   return (
     <div className={ultimo ? 'pb-0' : 'pb-6 mb-6 border-b border-gray-100'}>
       {titulo && <h3 className="text-lg font-black text-gray-900 mb-2">{titulo}</h3>}
-      <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{texto}</p>
+      <p className="text-base md:text-[17px] text-gray-700 leading-relaxed whitespace-pre-line">{texto}</p>
     </div>
   );
 }
@@ -163,7 +168,7 @@ function CardCompra({ curso, favoritado, onFavoritar }) {
             <BookOpenIcon className="w-12 h-12" />
           </div>
         )}
-        {curso.selo_mec && (
+        {curso.selo_mec && certificadoPelaLatec(curso.categoria) && (
           <span className="absolute top-3 left-3 bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5 text-[#cd146e]" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 1l2.39 4.84L18 6.91l-4 3.9.94 5.49L10 13.77l-4.94 2.53L6 10.81l-4-3.9 5.61-1.07L10 1z" />
@@ -312,6 +317,10 @@ export default function CursoDetalhe() {
 
   const gradeCurricular = parseGradeCurricular(curso.grade_curricular);
   const blocosConteudo = parseBlocosConteudo(curso.blocos_conteudo);
+  // Só os cursos de parceiro (Profissionalizantes e Tecnólogos) exibem a
+  // certificadora — nos técnicos quem certifica é a própria LATec.
+  const certificadora = certificadoraParceira(curso.categoria);
+  const avisoCertificacao = textoCertificacao(curso.categoria);
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] font-sans antialiased">
@@ -333,7 +342,7 @@ export default function CursoDetalhe() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-4 text-white max-w-2xl">{curso.titulo}</h1>
-          <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-lg mb-7">{curso.descricao}</p>
+          <p className="text-white/85 text-base md:text-[17px] font-medium leading-relaxed max-w-lg mb-7">{curso.descricao}</p>
 
           <a
             href={`https://wa.me/5527998392172?text=${encodeURIComponent(`Olá! Quero garantir minha vaga no curso ${curso.titulo}.`)}`}
@@ -360,6 +369,19 @@ export default function CursoDetalhe() {
               </span>
             )}
           </div>
+
+          {/* Quem emite o certificado deste curso */}
+          {certificadora && (
+            <div className="mt-5 max-w-lg rounded-2xl border border-white/25 bg-white/10 backdrop-blur-sm px-5 py-4">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#ff9ecb] mb-2">
+                Certificação emitida por
+              </p>
+              <span className="inline-flex items-center rounded-full bg-white text-[#1a103c] text-sm font-bold px-4 py-1.5 mb-2.5">
+                {certificadora}
+              </span>
+              <p className="text-sm text-white/85 leading-relaxed">{avisoCertificacao}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -381,7 +403,7 @@ export default function CursoDetalhe() {
                 <span className="absolute left-0 -bottom-2 w-16 h-1.5 rounded-full bg-[#cd146e]"></span>
               </h2>
             </div>
-            <p className="text-gray-600 text-base leading-relaxed mt-8 whitespace-pre-line">
+            <p className="text-gray-700 text-base md:text-[17px] leading-relaxed mt-8 whitespace-pre-line">
               {curso.descricao || 'Descrição indisponível.'}
             </p>
           </AoRolar>
@@ -441,7 +463,7 @@ export default function CursoDetalhe() {
                   </span>
                 )}
               </div>
-              <p className="text-gray-500 text-sm md:text-base mb-8">Conheça todas as disciplinas do curso organizadas por semestre.</p>
+              <p className="text-gray-600 text-base md:text-[17px] font-medium mb-8">Conheça todas as disciplinas do curso organizadas por semestre.</p>
             </AoRolar>
 
             {gradeCurricular.length === 0 ? (

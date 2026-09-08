@@ -134,8 +134,19 @@ export default function Footer() {
 
         </div>
 
+        {/* Nota institucional sobre a certificação dos cursos de Tecnólogo */}
+        <div className="border-t border-gray-200 mt-6 pt-4">
+          <p className="text-xs text-gray-500 leading-relaxed">
+            <strong className="font-semibold text-gray-600">Certificação:</strong> os cursos técnicos
+            são certificados pela LATec. Os cursos profissionalizantes são certificados pela LA Educação
+            e os cursos de Tecnólogo (graduação) pela Unicive — instituições parceiras responsáveis pela
+            emissão do respectivo certificado ou diploma. A certificadora de cada curso está indicada na
+            página do curso.
+          </p>
+        </div>
+
         {/* Linha Divisória Inferior */}
-        <div className="border-t border-gray-200 mt-6 pt-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
+        <div className="border-t border-gray-200 mt-4 pt-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
           <p>© {anoAtual} LATec. Todos os direitos reservados.</p>
           <div className="flex items-center gap-3">
              <p> Política de Privacidade</p>

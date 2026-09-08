@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
+import CtaWhatsapp from '../components/CtaWhatsapp';
 import { tecToGrad } from './aproveitamentoData';
 import LinhaDivisoriaEsteira from '../components/LinhaDivisoriaEsteira';
+import {
+  CERTIFICADORA_TECNOLOGOS,
+  TEXTO_RESSALVA_TECNOLOGOS,
+} from '../utils/certificadoras';
 
 const WHATSAPP_NUMERO = '5527998392172';
 
@@ -71,6 +76,7 @@ export default function Aproveitamento() {
   const tabelaRef = useRef(null);
 
   const cursos = useMemo(() => Object.keys(tecToGrad).sort(), []);
+
 
   const { totalTecnicos, totalGraduacoes, totalEquivalencias } = useMemo(() => {
     const graduacoesUnicas = new Set();
@@ -253,16 +259,29 @@ export default function Aproveitamento() {
 
           {selecionado && (
             <div ref={tabelaRef} className="mt-12">
-              <h3 className="text-center font-bold text-lg mb-6">
+              <h3 className="text-center font-bold text-lg mb-4">
                 Escolha uma das opções para fazer seu <span className="text-[#cd146e]">CURSO TECNÓLOGO</span>
               </h3>
 
+              {/* Ressalva no ponto da decisão: a certificação não é da LATec */}
+              <div className="mb-6 flex items-start gap-3 rounded-2xl border border-[#cd146e]/30 bg-[#fdf4f8] px-5 py-4">
+                <svg className="w-5 h-5 text-[#cd146e] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <strong className="font-bold text-[#1a103c]">Importante:</strong> {TEXTO_RESSALVA_TECNOLOGOS}{' '}
+                  A LATec faz o aproveitamento das disciplinas do seu curso técnico; o diploma de
+                  Tecnólogo é emitido por {CERTIFICADORA_TECNOLOGOS}.
+                </p>
+              </div>
+
               {resultados.length > 0 ? (
                 <div className="overflow-x-auto rounded-2xl shadow-[#cd146e]">
-                  <table className="w-full min-w-[560px] bg-white text-sm">
+                  <table className="w-full min-w-[720px] bg-white text-sm">
                     <thead>
                       <tr className="bg-black text-white text-xs uppercase tracking-wide">
                         <th className="px-5 py-3 text-left font-bold">Curso Tecnólogo</th>
+                        <th className="px-5 py-3 text-left font-bold">Certificação</th>
                         <th className="px-5 py-3 text-left font-bold">Tempo de Formação</th>
                         <th className="px-5 py-3 text-left font-bold">Carga Horária a Cursar</th>
                         <th className="px-5 py-3 text-left font-bold">Informações Sobre o Curso</th>
@@ -270,12 +289,19 @@ export default function Aproveitamento() {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {resultados.map(({ curso, tempo, cargaHoraria }, idx) => {
-                        const whatsMsg = `Olá! Vim pelo site e tenho interesse no curso de Tecnologia em ${curso}. Já possuo o ${selecionado}.`;
+                        // A ressalva vai junto na mensagem: é ela que vira o
+                        // registro do que foi informado ao aluno.
+                        const whatsMsg = `Olá! Vim pelo site e tenho interesse no curso de Tecnologia em ${curso}. Já possuo o ${selecionado}. Entendi que a certificação é emitida por ${CERTIFICADORA_TECNOLOGOS}, e não pela LATec.`;
                         const whatsUrl = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(whatsMsg)}`;
 
                         return (
                           <tr key={`${curso}-${idx}`} className="hover:bg-[#cd146e]/10 transition-colors">
                             <td className="px-5 py-4 font-semibold">{curso}</td>
+                            <td className="px-5 py-4">
+                              <span className="inline-flex items-center rounded-full bg-[#fdf4f8] border border-[#cd146e]/25 text-[#cd146e] text-[11px] font-bold px-2.5 py-1 whitespace-nowrap">
+                                {CERTIFICADORA_TECNOLOGOS}
+                              </span>
+                            </td>
                             <td className="px-5 py-4 text-gray-500">{tempo || '-'}</td>
                             <td className="px-5 py-4 text-gray-500">{cargaHoraria || '-'}</td>
                             <td className="px-5 py-4">
@@ -303,6 +329,8 @@ export default function Aproveitamento() {
           )}
         </div>
       </section>
+
+      <CtaWhatsapp />
       </div>
     </>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import CtaWhatsapp from '../components/CtaWhatsapp';
 import ImagemVagas from '../assets/vagas.webp';
 import { supabase } from '../supabaseClient'; // <-- ADICIONA ESTA LINHA // Importação estática da imagem de fundo
 
@@ -207,6 +208,8 @@ export default function Vagas() {
             </div>
           </div>
         )}
+
+        <CtaWhatsapp />
       </div>
     </div>
   );

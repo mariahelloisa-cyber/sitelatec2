@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import CtaWhatsapp from '../components/CtaWhatsapp';
-import ImagemVagas from '../assets/vagas.webp';
+import ImagemVagas from '../assets/vagas.png';
 import { supabase } from '../supabaseClient'; // <-- ADICIONA ESTA LINHA // Importação estática da imagem de fundo
 
 // Aceita tanto um array (coluna jsonb) quanto um texto com um item por linha

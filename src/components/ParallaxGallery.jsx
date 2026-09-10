@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import foto1 from '../assets/imghero.webp';
 import foto2 from '../assets/fundo-login.webp';
 import foto3 from '../assets/sobreHeroFoto.webp';
-import foto4 from '../assets/vagas.webp';
+import foto4 from '../assets/vagas.png';
 import foto5 from '../assets/fundoo.webp';
 import foto6 from '../assets/hero.webp';
 

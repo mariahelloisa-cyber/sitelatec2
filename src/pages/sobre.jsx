@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import ParallaxGallery from '../components/ParallaxGallery';
 import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
-import imagemInstitucional from '../assets/vagas.webp';
+import imagemInstitucional from '../assets/vagas.png';
 import selo6 from '../assets/selo6.webp';
 import fotoHeroSobre from '../assets/sobreHeroFoto.webp';
 

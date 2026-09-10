@@ -6,7 +6,7 @@ import foto1 from '../assets/imghero.webp';
 import foto2 from '../assets/fundo-login.webp';
 import foto3 from '../assets/hero.webp';
 import foto4 from '../assets/sobreHeroFoto.webp';
-import foto5 from '../assets/vagas.webp';
+import foto5 from '../assets/vagas.png';
 import foto6 from '../assets/fundoo.webp';
 
 const IMAGENS_PADRAO = [

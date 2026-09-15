@@ -118,10 +118,10 @@ function TituloSecao({ titulo, destaque, subtitulo }) {
 
 function CardBeneficio({ Icon, titulo, descricao }) {
   return (
-    <div className="sm:aspect-square bg-gradient-to-br from-[#cd146e] to-[#6366f1] rounded-2xl p-4 sm:p-5 text-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col overflow-hidden">
-      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white mb-1.5 sm:mb-3 shrink-0 group-hover:scale-110 transition-transform duration-300" />
-      <h3 className="text-sm sm:text-base font-black mb-1 sm:mb-1.5 shrink-0">{titulo}</h3>
-      <p className="text-xs sm:text-sm font-medium text-white/90 leading-relaxed line-clamp-3">{descricao}</p>
+    <div className="h-full bg-gradient-to-br from-[#cd146e] to-[#6366f1] rounded-2xl p-5 sm:p-6 text-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col">
+      <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white mb-4 shrink-0 group-hover:scale-110 transition-transform duration-300" />
+      <h3 className="text-base font-black tracking-tight mb-2 shrink-0">{titulo}</h3>
+      <p className="text-sm font-semibold text-white leading-relaxed">{descricao}</p>
     </div>
   );
 }

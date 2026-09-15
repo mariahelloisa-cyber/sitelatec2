@@ -308,7 +308,7 @@ export default function CursoDetalhe() {
 
   const gradeCurricular = parseGradeCurricular(curso.grade_curricular);
   const blocosConteudo = parseBlocosConteudo(curso.blocos_conteudo);
-  // Só os cursos de parceiro (Profissionalizantes e Tecnólogos) exibem a
+  // Só os cursos de parceiro (Profissionalizantes) exibem a
   // certificadora — nos técnicos quem certifica é a própria LATec.
   const certificadora = certificadoraParceira(curso.categoria);
   const avisoCertificacao = textoCertificacao(curso.categoria);

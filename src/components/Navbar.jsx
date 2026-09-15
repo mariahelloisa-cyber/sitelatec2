@@ -5,17 +5,15 @@ import logo from '../assets/logolatec.webp';
 // Submenu que abre ao passar o cursor sobre "Cursos"
 const SUBMENU_CURSOS = [
   { to: '/cursos/tecnicos', label: 'Técnicos' },
-  { to: '/cursos/tecnologos', label: 'Tecnólogos' },
   { to: '/cursos/profissionalizantes', label: 'Profissionalizantes' },
 ];
 
 const LINKS_NAV = [
   { to: '/', label: 'Início' },
   { to: '/sobre', label: 'Sobre Nós' },
-  // "Cursos" não leva a lugar nenhum: só abre as três opções abaixo.
+  // "Cursos" não leva a lugar nenhum: só abre as opções abaixo.
   { to: 'cursos', label: 'Cursos', submenu: SUBMENU_CURSOS },
   { to: '/blog', label: 'Blog' },
-  { to: '/validacaoRastreio', label: 'Aproveitamento' },
   { to: '/vagas', label: 'Vagas' },
   { to: '/ouvidoria', label: 'Ouvidoria' },
 ];

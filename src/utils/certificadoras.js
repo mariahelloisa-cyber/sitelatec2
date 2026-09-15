@@ -1,13 +1,11 @@
 // Quem emite o certificado depende do tipo do curso:
 //   Técnicos            -> LATec (certificação própria)
 //   Profissionalizantes -> LA Educação
-//   Tecnólogos          -> Unicive
 //
 // Fonte única: mudou a certificadora de algum tipo, muda só aqui.
 
 export const CERTIFICADORA_LATEC = 'LATec';
 export const CERTIFICADORA_PROFISSIONALIZANTES = 'LA Educação';
-export const CERTIFICADORA_TECNOLOGOS = 'Unicive';
 
 // Remove acentos sem depender de caracteres combinantes literais no código
 const REGEX_ACENTOS = new RegExp('[\\u0300-\\u036f]', 'g');
@@ -26,7 +24,6 @@ export function certificadoraDaCategoria(categoria) {
   const chave = normalizar(categoria);
   if (!chave) return null;
   if (chave.startsWith('tecnico')) return CERTIFICADORA_LATEC;
-  if (chave.startsWith('tecnologo')) return CERTIFICADORA_TECNOLOGOS;
   if (chave.startsWith('profissionalizante')) return CERTIFICADORA_PROFISSIONALIZANTES;
   return null;
 }
@@ -51,6 +48,3 @@ export function textoCertificacao(categoria) {
   if (!parceira) return null;
   return `A certificação deste curso é emitida por ${parceira}, instituição parceira, e não pela LATec.`;
 }
-
-export const TEXTO_RESSALVA_TECNOLOGOS =
-  `Os cursos de Tecnólogo não são certificados pela LATec: a certificação é emitida pela ${CERTIFICADORA_TECNOLOGOS}, instituição parceira.`;

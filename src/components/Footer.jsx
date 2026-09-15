@@ -134,14 +134,13 @@ export default function Footer() {
 
         </div>
 
-        {/* Nota institucional sobre a certificação dos cursos de Tecnólogo */}
+        {/* Nota institucional sobre a certificação dos cursos */}
         <div className="border-t border-gray-200 mt-6 pt-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="font-semibold text-gray-600">Certificação:</strong> os cursos técnicos
-            são certificados pela LATec. Os cursos profissionalizantes são certificados pela LA Educação
-            e os cursos de Tecnólogo (graduação) pela Unicive — instituições parceiras responsáveis pela
-            emissão do respectivo certificado ou diploma. A certificadora de cada curso está indicada na
-            página do curso.
+            são certificados pela LATec. Os cursos profissionalizantes são certificados pela LA Educação,
+            instituição parceira responsável pela emissão do respectivo certificado. A certificadora de
+            cada curso está indicada na página do curso.
           </p>
         </div>
 

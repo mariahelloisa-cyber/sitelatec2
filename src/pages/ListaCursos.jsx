@@ -9,10 +9,9 @@ import imagemFundo from '../assets/imghero.webp';
 
 const WHATSAPP_NUMERO = '5527998392172';
 
-// Ordem de exibição/filtro desejada: Técnicos > Tecnólogos > Profissionalizantes (demais categorias vêm depois, em ordem alfabética)
+// Ordem de exibição/filtro desejada: Técnicos > Profissionalizantes (demais categorias vêm depois, em ordem alfabética)
 const ORDEM_CATEGORIAS = [
   'técnicos',
-  'tecnólogos',
   'profissionalizantes avançados',
   'profissionalizantes comuns',
   'profissionalizantes premium',
@@ -81,7 +80,7 @@ function OpcaoCheckbox({ label, marcada, onChange }) {
 }
 
 // Hero padrão da página /cursos (catálogo completo). As páginas por tipo
-// (Técnicos, Tecnólogos, Profissionalizantes) passam a sua própria hero.
+// (Técnicos, Profissionalizantes) passam a sua própria hero.
 const HERO_PADRAO = {
   tag: 'Catálogo de Cursos',
   tituloInicio: 'Nossos ',
@@ -167,7 +166,7 @@ export default function ListaCursos({
   // Proteção contra dados vazios
   const dadosCursos = Array.isArray(listaCursosGiga) ? listaCursosGiga : [];
 
-  // Quando a página é de um tipo específico (Técnicos, Tecnólogos...), só as
+  // Quando a página é de um tipo específico (Técnicos, Profissionalizantes...), só as
   // categorias daquele tipo entram na listagem e nos filtros.
   const categoriaPermitida = (nomeCategoria) => {
     if (!categoriasPermitidas) return true;

@@ -40,8 +40,8 @@ const BENEFICIOS = [
   },
   {
     Icon: ShieldCheckIcon,
-    titulo: 'Certificado',
-    descricao: 'Certificado ao concluir o curso.',
+    titulo: 'Diploma',
+    descricao: 'Documento oficial que habilita os concluintes a exercer uma profissão.',
   },
 ];
 

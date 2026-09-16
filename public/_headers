@@ -1,0 +1,43 @@
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://formspree.io; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://pcigqjqhwtclyzoztyie.supabase.co https://images.unsplash.com https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' https://pcigqjqhwtclyzoztyie.supabase.co; connect-src 'self' https://pcigqjqhwtclyzoztyie.supabase.co wss://pcigqjqhwtclyzoztyie.supabase.co https://formspree.io; frame-src https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# ============================================================================
+# COMO ESTE ARQUIVO É USADO
+# ----------------------------------------------------------------------------
+# Formato "_headers" do Cloudflare Pages / Netlify. O Vite copia tudo que está
+# em public/ para dist/ no build, então ele é publicado automaticamente.
+#
+# Se o site NÃO for servido por Cloudflare Pages ou Netlify, estes headers
+# precisam ser reproduzidos na camada equivalente do host (Cloudflare
+# Transform Rules / Workers, nginx `add_header`, vercel.json `headers`, etc.).
+# Sem isso o arquivo é inerte e o site fica sem nenhum destes controles.
+#
+# DECISÕES DA POLÍTICA
+# ----------------------------------------------------------------------------
+# script-src 'self'          — o build do Vite não gera script inline, então dá
+#                              para recusar 'unsafe-inline' e 'unsafe-eval'.
+#                              Isso é o que transforma a CSP em defesa real
+#                              contra XSS, em vez de enfeite.
+# style-src 'unsafe-inline'  — necessário: framer-motion, Swiper e Lenis
+#                              escrevem em element.style em tempo de execução.
+#                              Atributo de estilo não executa JavaScript.
+# frame-ancestors 'none'     — o site não é embutido em lugar nenhum;
+#                              bloqueia clickjacking. X-Frame-Options está
+#                              junto só para navegadores antigos.
+# frame-src youtube          — o vídeo institucional da página Sobre Nós.
+# connect-src supabase       — REST, Auth, Storage e Realtime (wss) do projeto.
+# connect-src formspree      — envio do formulário da Ouvidoria.
+# img-src unsplash/wikimedia — imagens de fallback usadas no Blog e no Sobre.
+# form-action                — o único POST de formulário que sai do site é o
+#                              da Ouvidoria, para o Formspree.
+#
+# ATENÇÃO AO TROCAR DE PROJETO SUPABASE: o host pcigqjqhwtclyzoztyie.supabase.co
+# aparece em img-src, media-src e connect-src e precisa ser atualizado aqui,
+# senão o site carrega em branco.
+# ============================================================================

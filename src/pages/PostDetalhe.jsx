@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { supabase } from '../supabaseClient'; // <-- ADICIONE APENAS ESTA LINHA
+import { supabase } from '../supabaseClient';   
 
 export default function PostDetalhe() {
   const { id } = useParams();
@@ -14,7 +14,6 @@ export default function PostDetalhe() {
       try {
         setCarregando(true);
 
-        // 1. Busca a notícia principal diretamente no Supabase filtrando pelo ID
         const { data: item, error: errorPost } = await supabase
           .from('noticias')
           .select('*')
@@ -23,7 +22,6 @@ export default function PostDetalhe() {
 
         if (errorPost || !item) throw new Error("Notícia não encontrada no Supabase");
 
-        // Formata os dados no formato exato que o seu HTML atual espera
         setPost({
           id: item.id,
           titulo: item.titulo || "Título do Post",
@@ -35,11 +33,10 @@ export default function PostDetalhe() {
           tempoLeitura: item.tempo_leitura || 3
         });
 
-        // 2. Busca até 3 notícias para os "Artigos Relacionados" no rodapé
         const { data: itensRelacionados, error: errorRel } = await supabase
           .from('noticias')
           .select('*')
-          .neq('id', id) // Não mostra a notícia atual nos relacionados
+          .neq('id', id) 
           .limit(3);
 
         if (!errorRel && itensRelacionados) {

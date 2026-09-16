@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import ParallaxGallery from '../components/ParallaxGallery';
 import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
+import { urlSegura } from '../utils/urlSegura';
 import imagemInstitucional from '../assets/vagas.png';
 import selo6 from '../assets/selo6.webp';
 import fotoHeroSobre from '../assets/sobreHeroFoto.webp';
@@ -455,7 +456,7 @@ export default function Sobre() {
               {REDES_SOCIAIS_CONFIG.map(({ key, label }) => (
                 <a
                   key={key}
-                  href={redesSociais[`${key}_link`] || '#'}
+                  href={urlSegura(redesSociais[`${key}_link`])}
                   target="_blank"
                   rel="noreferrer"
                   className="group flex flex-col items-center gap-3 w-36 sm:w-44 md:w-52"

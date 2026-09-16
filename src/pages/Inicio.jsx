@@ -33,7 +33,7 @@ import {
   CubeIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
-import { supabase } from '../supabaseClient'; // <-- Importação do Supabase
+import { supabase, usuarioEhAdmin } from '../supabaseClient';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ParticleText from '../components/ParticleText';
@@ -41,6 +41,7 @@ import RoundCarousel from '../components/RoundCarousel';
 import { parseGradeCurricular, serializeGradeCurricular } from '../utils/gradeCurricular';
 import { parseBlocosConteudo, serializeBlocosConteudo } from '../utils/blocosConteudo';
 import { nomeArquivoSeguro } from '../utils/nomeArquivo';
+import { uploadImagemSegura } from '../utils/uploadSeguro';
 
 // --- Helpers para o formulário estruturado de Grade Curricular / Conteúdo do admin ---
 function criarDisciplinaVazia() {
@@ -68,7 +69,6 @@ const CARROSSEL_3D_CAMPOS = Array.from({ length: 12 }, (_, i) => `imagem_${i + 1
 const CARROSSEL_3D_MINIMO = 3;
 
 export default function Inicio() {
-  const SENHA_ADMIN_DEFINIDA = "123456"; // <-- MUDAS AQUI A TUA SENHA DO PAINEL!
   const navigate = useNavigate();
   const [buscaCursoHome, setBuscaCursoHome] = useState("");
 
@@ -77,13 +77,30 @@ export default function Inicio() {
   const [abaAdmin, setAbaAdmin] = useState('dashboard'); // aba ativa do painel admin
   const [novoTitulo, setNovoTitulo] = useState("");
   const [mensagemStatus, setMensagemStatus] = useState("");
+  // O painel só abre para quem tem sessão Supabase válida E está na allowlist
+  // public.admins. Não existe mais "chave mágica" em localStorage: aquela
+  // abordagem era um sinalizador que qualquer visitante podia gravar pelo
+  // DevTools para abrir o painel. Aqui a resposta vem do servidor (RPC
+  // is_admin), e o RLS repete a mesma checagem em toda escrita.
   useEffect(() => {
-    // Lê a chave mágica que veio da tela de login
-    const isPainelLiberado = localStorage.getItem('painel_liberado');
-    if (isPainelLiberado === 'true') {
-      setModoAdmin(true); // O ecrã fica preto e abre o painel automaticamente!
-      localStorage.removeItem('painel_liberado'); // Apaga a chave logo a seguir para não prender o site
+    let ativo = true;
+
+    async function avaliarAcesso() {
+      const ehAdmin = await usuarioEhAdmin();
+      if (ativo) setModoAdmin(ehAdmin);
     }
+
+    avaliarAcesso();
+
+    // Reavalia a cada login/logout/refresh de token, inclusive em outra aba.
+    const { data: inscricao } = supabase.auth.onAuthStateChange(() => {
+      avaliarAcesso();
+    });
+
+    return () => {
+      ativo = false;
+      inscricao?.subscription?.unsubscribe();
+    };
   }, []);
 
   // --- Estado para os Banners Dinâmicos do Supabase ---
@@ -289,9 +306,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
       const nomeArquivo = nomeArquivoSeguro(arquivo.name);
 
       // 1. Envia o arquivo para a pasta (Bucket) do Supabase
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(nomeArquivo, arquivo);
+      const { data: uploadData, error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
 
       if (uploadError) throw uploadError;
 
@@ -336,9 +351,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
       const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'selo');
 
       // 1. Upload da imagem para o bucket 'banners'
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(nomeArquivo, arquivo);
+      const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
 
       if (uploadError) throw uploadError;
 
@@ -412,9 +425,7 @@ const [novoCorpoNoticia, setNovoCorpoNoticia] = useState("");
       const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'diferencial');
 
       // 1. Upload da imagem para o bucket 'banners'
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(nomeArquivo, arquivo);
+      const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
 
       if (uploadError) throw uploadError;
 
@@ -482,7 +493,9 @@ async function handleAdicionarNoticia(e) {
     setMensagemStatus("⏳ Publicando notícia...");
     const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'noticia');
 
-    await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+    const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
+    if (uploadError) throw uploadError;
+
     const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
 
     const { error } = await supabase.from('noticias').insert([
@@ -713,9 +726,7 @@ async function handleEliminarNoticia(id) {
       // Se o usuário selecionou uma nova imagem, faz o upload dela
       if (arquivo) {
         const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'noticia');
-        const { error: uploadError } = await supabase.storage
-          .from('banners')
-          .upload(nomeArquivo, arquivo);
+        const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
 
         if (uploadError) throw uploadError;
 
@@ -790,19 +801,11 @@ async function handleEliminarNoticia(id) {
     }
   }
 
-  // Função para alternar o modo administrativo por Prompt de Senha
-  function gerenciarAcessoAdmin() {
-    if (modoAdmin) {
-      setModoAdmin(false);
-    } else {
-      const senhaDigitada = prompt("Insira a senha de administrador para aceder ao painel:");
-      if (senhaDigitada === SENHA_ADMIN_DEFINIDA) {
-        setModoAdmin(true);
-      } else if (senhaDigitada !== null) {
-        alert("❌ Senha incorreta!");
-      }
-    }
-  }
+  // REMOVIDO: gerenciarAcessoAdmin() abria o painel comparando o que a pessoa
+  // digitasse num prompt() com uma senha literal no código-fonte. Qualquer um
+  // que abrisse o bundle JavaScript lia essa senha. O acesso ao painel agora
+  // depende de sessão Supabase + allowlist public.admins (ver o useEffect no
+  // topo deste componente e supabase/security_hardening.sql). Entrada: /login.
 
   // 2. Buscar Selos do SUPABASE (Substituindo o Strapi)
   async function buscarSelosDoSupabase() {
@@ -926,9 +929,7 @@ async function handleEliminarNoticia(id) {
 
       if (arquivo) {
         const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'curso-destaque');
-        const { error: uploadError } = await supabase.storage
-          .from('banners')
-          .upload(nomeArquivo, arquivo);
+        const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
         if (uploadError) throw uploadError;
 
         const { data: urlData } = supabase.storage
@@ -1048,9 +1049,7 @@ async function handleEliminarNoticia(id) {
       setMensagemStatus("⏳ Fazendo upload do banner lateral...");
       const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'banner-lateral');
 
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(nomeArquivo, arquivo);
+      const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
@@ -1195,7 +1194,7 @@ async function handleEliminarNoticia(id) {
 
       if (arquivo) {
         const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'sobre-destaque');
-        const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+        const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
         imagemUrlFinal = urlData.publicUrl;
@@ -1265,7 +1264,7 @@ async function handleEliminarNoticia(id) {
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
           const nomeArquivo = nomeArquivoSeguro(arquivo.name, `sobre-rede-${key}`);
-          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
           dadosFinais[`${key}_imagem`] = urlData.publicUrl;
@@ -1331,7 +1330,7 @@ async function handleEliminarNoticia(id) {
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
           const nomeArquivo = nomeArquivoSeguro(arquivo.name, `sobre-galeria-${campo}`);
-          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
           dadosFinais[campo] = urlData.publicUrl;
@@ -1408,7 +1407,7 @@ async function handleEliminarNoticia(id) {
         const arquivo = arquivoInput?.files[0];
         if (arquivo) {
           const nomeArquivo = nomeArquivoSeguro(arquivo.name, `carrossel3d-${campo}`);
-          const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivo);
+          const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
           if (uploadError) throw uploadError;
           const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
           dadosFinais[campo] = urlData.publicUrl;
@@ -1476,9 +1475,7 @@ async function handleEliminarNoticia(id) {
       setMensagemStatus("⏳ Fazendo upload da foto de Nossa História...");
       const nomeArquivo = nomeArquivoSeguro(arquivo.name, 'sobre-historia');
 
-      const { error: uploadError } = await supabase.storage
-        .from('banners')
-        .upload(nomeArquivo, arquivo);
+      const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivo);
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
@@ -1615,7 +1612,7 @@ async function handleEliminarNoticia(id) {
       let imagemUrl = "";
       if (arquivoImagem) {
         const nomeArquivo = nomeArquivoSeguro(arquivoImagem.name, 'curso');
-        const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivoImagem);
+        const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivoImagem);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
         imagemUrl = urlData.publicUrl;
@@ -1624,7 +1621,7 @@ async function handleEliminarNoticia(id) {
       let imagemCapaUrl = "";
       if (arquivoImagemCapa) {
         const nomeArquivoCapa = nomeArquivoSeguro(arquivoImagemCapa.name, 'curso-capa');
-        const { error: uploadCapaError } = await supabase.storage.from('banners').upload(nomeArquivoCapa, arquivoImagemCapa);
+        const { error: uploadCapaError } = await uploadImagemSegura(nomeArquivoCapa, arquivoImagemCapa);
         if (uploadCapaError) throw uploadCapaError;
         const { data: urlCapaData } = supabase.storage.from('banners').getPublicUrl(nomeArquivoCapa);
         imagemCapaUrl = urlCapaData.publicUrl;
@@ -1799,7 +1796,7 @@ async function handleEliminarNoticia(id) {
       // Só substitui as imagens se o admin escolheu um novo arquivo
       if (arquivoImagem) {
         const nomeArquivo = nomeArquivoSeguro(arquivoImagem.name, 'curso');
-        const { error: uploadError } = await supabase.storage.from('banners').upload(nomeArquivo, arquivoImagem);
+        const { error: uploadError } = await uploadImagemSegura(nomeArquivo, arquivoImagem);
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from('banners').getPublicUrl(nomeArquivo);
         dadosAtualizados.imagem_url = urlData.publicUrl;
@@ -1807,7 +1804,7 @@ async function handleEliminarNoticia(id) {
 
       if (arquivoImagemCapa) {
         const nomeArquivoCapa = nomeArquivoSeguro(arquivoImagemCapa.name, 'curso-capa');
-        const { error: uploadCapaError } = await supabase.storage.from('banners').upload(nomeArquivoCapa, arquivoImagemCapa);
+        const { error: uploadCapaError } = await uploadImagemSegura(nomeArquivoCapa, arquivoImagemCapa);
         if (uploadCapaError) throw uploadCapaError;
         const { data: urlCapaData } = supabase.storage.from('banners').getPublicUrl(nomeArquivoCapa);
         dadosAtualizados.imagem_capa_url = urlCapaData.publicUrl;

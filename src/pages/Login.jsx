@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ShieldCheckIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { supabase } from '../supabaseClient'; 
+import { supabase, usuarioEhAdmin } from '../supabaseClient';
 
 import logoLatec from '../assets/logolatec.webp';
 import bgFundo from '../assets/fundo-login.webp';
@@ -19,16 +19,18 @@ export default function Login() {
   });
 
   // 1. VERIFICA SE JÁ ESTÁ LOGADO
-  // Se o admin clicar na engrenagem e já tiver sessão averific tiva, vai engrenagem {bloco -= } direto pro painel
+  // Quem já tem sessão de administrador válida vai direto para o painel.
+  // Quem tem sessão mas não é admin fica aqui: o painel só abre depois do
+  // servidor confirmar a permissão (RPC is_admin), nunca por flag local.
   useEffect(() => {
+    let ativo = true;
     const verificarSessao = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        localStorage.setItem('painel_liberado', 'true');
+      if ((await usuarioEhAdmin()) && ativo) {
         navigate('/');
       }
     };
     verificarSessao();
+    return () => { ativo = false; };
   }, [navigate]);
 
   const handleInputChange = (e) => {
@@ -47,20 +49,27 @@ export default function Login() {
     setErro('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.usuario, 
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.usuario,
         password: formData.senha,
       });
 
       if (error) throw error;
 
-      // PASSO MÁGICO: Guarda a chave de acesso e redirecioniona para a Home!
-      localStorage.setItem('painel_liberado', 'true');
-      alert('✅ Login efetuado com sucesso! Bem-vindo ao Painel.');
-      navigate('/'); 
-      
-    } catch (error) {
-      console.error('Erro no login:', error.message);
+      // Autenticar não basta: a conta precisa estar na allowlist de admins.
+      // Sem isso, um usuário comum que se cadastrasse entraria no painel.
+      if (!(await usuarioEhAdmin())) {
+        await supabase.auth.signOut();
+        // Mensagem deliberadamente igual à de credencial errada, para não
+        // revelar que o e-mail existe e só não tem permissão.
+        setErro('Credenciais inválidas. Verifica o teu e-mail e palavra-passe.');
+        return;
+      }
+
+      navigate('/');
+    } catch {
+      // Não logamos a mensagem do provedor: ela distingue "usuário não existe"
+      // de "senha errada" e serve para enumerar contas.
       setErro('Credenciais inválidas. Verifica o teu e-mail e palavra-passe.');
     } finally {
       setCarregando(false);

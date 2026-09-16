@@ -1,6 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Autoplay, EffectCoverflow, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import ImagemLazy from './ImagemLazy';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
@@ -100,7 +101,7 @@ export default function CarouselCoverflow({
         {items.map((item, index) => (
           <SwiperSlide key={item.id ?? index}>
             <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
-              <img src={item.src} alt={item.alt} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              <ImagemLazy src={item.src} alt={item.alt} className="h-full w-full object-cover" />
               {item.titulo && (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />

@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "imagens": "node scripts/comprimir-imagens.mjs"
+    "imagens": "node scripts/comprimir-imagens.mjs",
+    "recomprimir": "node scripts/recomprimir-storage.mjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

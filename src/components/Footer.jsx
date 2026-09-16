@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import logo from '../assets/logolatec.webp';
 import { supabase } from '../supabaseClient';
 import { urlSegura } from '../utils/urlSegura';
+import ImagemLazy from './ImagemLazy';
 
 const CONTATO_PADRAO = {
   endereco_linha1: 'Rua Flor de Maio, 376',
@@ -60,7 +61,7 @@ export default function Footer() {
 
           {/* COLUNA 1: LOGO, SOBRE E REDES SOCIAIS */}
           <div className="md:col-span-4 flex flex-col gap-3">
-            <img src={logo} alt="LATec Escola Técnica" className="h-14 w-auto object-contain -ml-2" loading="lazy" decoding="async" />
+            <ImagemLazy src={logo} alt="LATec Escola Técnica" className="h-14 w-auto object-contain -ml-2" />
             <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
               Mais que ensino técnico. É futuro construído com propósito.
             </p>

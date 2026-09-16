@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BookOpenIcon, ClockIcon, BoltIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import ImagemLazy from './ImagemLazy';
 
 // Card em formato de lista (imagem à esquerda, conteúdo à direita) — usado
 // só na listagem de busca de cursos. Mantém a mesma identidade visual do
@@ -13,10 +14,9 @@ export default function CursoListItem({ curso }) {
       {/* Imagem — quadrada, fixa à esquerda no desktop, em cima no mobile */}
       <div className="relative w-full sm:w-[150px] md:w-[180px] aspect-square shrink-0 rounded-xl overflow-hidden bg-gray-900">
         {curso.imagem_url ? (
-          <img
+          <ImagemLazy
             src={curso.imagem_url}
             alt={curso.titulo}
-            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

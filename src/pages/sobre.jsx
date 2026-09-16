@@ -7,6 +7,7 @@ import { urlSegura } from '../utils/urlSegura';
 import imagemInstitucional from '../assets/vagas.webp';
 import selo6 from '../assets/selo6.webp';
 import fotoHeroSobre from '../assets/sobreHeroFoto.webp';
+import ImagemLazy from '../components/ImagemLazy';
 
 const ID_VIDEO_MANIFESTO = '4vff2PohAU8';
 
@@ -50,12 +51,10 @@ function FotoRemota({ src, fallback, carregando, alt, className }) {
   }
 
   return (
-    <img
+    <ImagemLazy
       src={src || fallback}
       alt={alt}
       className={className}
-      loading="lazy"
-      decoding="async"
     />
   );
 }
@@ -500,12 +499,10 @@ export default function Sobre() {
                 >
                   <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100 transition-transform duration-300 group-hover:-translate-y-1">
                     {redesSociais[`${key}_imagem`] ? (
-                      <img
+                      <ImagemLazy
                         src={redesSociais[`${key}_imagem`]}
                         alt={label}
                         className="w-full h-full object-cover object-top"
-                        loading="lazy"
-                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs font-bold uppercase text-center px-2">
@@ -573,12 +570,10 @@ Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades
                 className="absolute inset-0 w-full h-full group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                  <img
+                  <ImagemLazy
                     src={imagemInstitucional}
                     alt="Capa do Manifesto"
                     className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
                   />
                 </div>
 

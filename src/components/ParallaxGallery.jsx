@@ -11,6 +11,7 @@ import foto3 from '../assets/sobreHeroFoto.webp';
 import foto4 from '../assets/vagas.webp';
 import foto5 from '../assets/fundoo.webp';
 import foto6 from '../assets/hero.webp';
+import ImagemLazy from './ImagemLazy';
 
 const IMAGENS_PADRAO = [foto1, foto2, foto3, foto4, foto5, foto6, foto1, foto2, foto3];
 
@@ -25,7 +26,7 @@ function Column({ images, y, carregando }) {
           {carregando ? (
             <div className="h-full w-full bg-gray-100 animate-pulse" aria-hidden="true" />
           ) : (
-            <img src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" loading="lazy" decoding="async" />
+            <ImagemLazy src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" />
           )}
         </div>
       ))}

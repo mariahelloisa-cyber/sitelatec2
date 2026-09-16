@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BookOpenIcon, ClockIcon, BoltIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { certificadoraDaCategoria, certificadoPelaLatec } from '../utils/certificadoras';
+import ImagemLazy from './ImagemLazy';
 
 export default function CursoCard({ curso }) {
   // Só os técnicos são certificados pela LATec; nos demais o selo SISTEC
@@ -15,10 +16,9 @@ export default function CursoCard({ curso }) {
     >
       <div className="relative w-full aspect-[2/1] shrink-0 overflow-hidden bg-gray-900">
         {curso.imagem_url ? (
-          <img
+          <ImagemLazy
             src={curso.imagem_url}
             alt={curso.titulo}
-            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (

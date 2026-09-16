@@ -153,6 +153,7 @@ export default function Inicio() {
   const [fotoHistoria, setFotoHistoria] = useState(null);
   const [depoimentos, setDepoimentos] = useState([]);
   const [carrossel3dImagens, setCarrossel3dImagens] = useState(undefined);
+  const [carrossel3dCarregado, setCarrossel3dCarregado] = useState(false);
   const [carrossel3dForm, setCarrossel3dForm] = useState(
     CARROSSEL_3D_CAMPOS.reduce((acc, campo) => {
       acc[campo] = "";
@@ -1389,6 +1390,10 @@ async function handleEliminarNoticia(id) {
       }
     } catch (err) {
       console.error("Erro ao carregar o carrossel 3D da Home:", err);
+    } finally {
+      // Também no erro: sem isto os painéis ficariam vazios para sempre em vez
+      // de cair nas imagens padrão.
+      setCarrossel3dCarregado(true);
     }
   }
 
@@ -3600,7 +3605,7 @@ async function handleEliminarNoticia(id) {
           </h2>
         </div>
         <div className="w-full h-[320px] md:h-[420px]">
-          <RoundCarousel background="#ffffff" images={carrossel3dImagens} />
+          <RoundCarousel background="#ffffff" images={carrossel3dImagens} carregando={!carrossel3dCarregado} />
         </div>
       </section>
 

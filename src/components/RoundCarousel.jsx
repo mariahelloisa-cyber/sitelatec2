@@ -18,8 +18,13 @@ const IMAGENS_PADRAO = [
   { src: foto6 },
 ];
 
+// `carregando` distingue "o painel ainda não respondeu" de "o painel não tem
+// carrossel configurado". Sem essa diferença as fotos de exemplo entram em
+// cena e são trocadas pelas do admin um instante depois, na frente do
+// visitante.
 export default function RoundCarousel({
   images = IMAGENS_PADRAO,
+  carregando = false,
   imageWidth = 300,
   imageHeight = 300,
   spacing = 1,
@@ -34,7 +39,19 @@ export default function RoundCarousel({
   background = '#000000',
   style = {},
 }) {
-  const items = images.length > 0 ? images : IMAGENS_PADRAO;
+  // Enquanto carrega, os painéis giram vazios: mesma quantidade e mesmo
+  // movimento, só sem foto nenhuma para trocar depois.
+  const items = carregando
+    ? Array.from({ length: IMAGENS_PADRAO.length }, () => ({}))
+    : images.length > 0
+      ? images
+      : IMAGENS_PADRAO;
+
+  // O painel sem foto é escuro por padrão (combina com o fundo preto do
+  // componente), mas durante o carregamento ele aparece sobre o fundo claro
+  // da Home, então vira um cinza de esqueleto.
+  const corFrenteVazia = carregando ? '#eceef1' : '#222';
+  const corVersoVazio = carregando ? '#e2e5e9' : '#181818';
   const count = items.length;
 
   const ringRef = useRef(null);
@@ -157,7 +174,7 @@ export default function RoundCarousel({
                 <div
                   style={{
                     ...faceBase,
-                    backgroundColor: src ? 'transparent' : '#222',
+                    backgroundColor: src ? 'transparent' : corFrenteVazia,
                     backgroundImage: src ? `url(${src})` : undefined,
                     boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
                   }}
@@ -166,7 +183,7 @@ export default function RoundCarousel({
                   style={{
                     ...faceBase,
                     transform: 'rotateY(180deg)',
-                    backgroundColor: src ? 'transparent' : '#181818',
+                    backgroundColor: src ? 'transparent' : corVersoVazio,
                     backgroundImage: src ? `url(${src})` : undefined,
                     filter: `brightness(${innerDim / 10})`,
                   }}

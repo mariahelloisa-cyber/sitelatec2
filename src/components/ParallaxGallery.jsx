@@ -14,7 +14,7 @@ import foto6 from '../assets/hero.webp';
 
 const IMAGENS_PADRAO = [foto1, foto2, foto3, foto4, foto5, foto6, foto1, foto2, foto3];
 
-function Column({ images, y }) {
+function Column({ images, y, carregando }) {
   return (
     <motion.div
       className="relative -top-[45%] flex h-full w-1/4 min-w-[250px] flex-col gap-[2vw] first:top-[-45%] [&:nth-child(2)]:top-[-95%] [&:nth-child(3)]:top-[-45%] [&:nth-child(4)]:top-[-75%]"
@@ -22,14 +22,22 @@ function Column({ images, y }) {
     >
       {images.map((src, i) => (
         <div key={i} className="relative h-full w-full overflow-hidden rounded-2xl">
-          <img src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" loading="lazy" decoding="async" />
+          {carregando ? (
+            <div className="h-full w-full bg-gray-100 animate-pulse" aria-hidden="true" />
+          ) : (
+            <img src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" loading="lazy" decoding="async" />
+          )}
         </div>
       ))}
     </motion.div>
   );
 }
 
-export default function ParallaxGallery({ images: imagensProp }) {
+// `carregando` existe porque `imagensProp` vazio é ambíguo: pode ser o painel
+// ainda respondendo ou o painel sem galeria configurada. Sem distinguir os
+// dois, as fotos de exemplo aparecem em cena e são trocadas pelas do admin
+// um instante depois, na frente do visitante.
+export default function ParallaxGallery({ images: imagensProp, carregando = false }) {
   const images = imagensProp && imagensProp.length === 9 ? imagensProp : IMAGENS_PADRAO;
   const gallery = useRef(null);
   const [dimension, setDimension] = useState({ width: 0, height: 0 });
@@ -75,10 +83,10 @@ export default function ParallaxGallery({ images: imagensProp }) {
         ref={gallery}
         className="relative box-border flex h-[175vh] gap-[2vw] overflow-hidden bg-white p-[2vw]"
       >
-        <Column images={[images[0], images[1], images[2]]} y={y} />
-        <Column images={[images[3], images[4], images[5]]} y={y2} />
-        <Column images={[images[6], images[7], images[8]]} y={y3} />
-        <Column images={[images[6], images[7], images[8]]} y={y4} />
+        <Column images={[images[0], images[1], images[2]]} y={y} carregando={carregando} />
+        <Column images={[images[3], images[4], images[5]]} y={y2} carregando={carregando} />
+        <Column images={[images[6], images[7], images[8]]} y={y3} carregando={carregando} />
+        <Column images={[images[6], images[7], images[8]]} y={y4} carregando={carregando} />
       </div>
     </main>
   );

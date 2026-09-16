@@ -36,6 +36,30 @@ const REDES_SOCIAIS_PADRAO = REDES_SOCIAIS_CONFIG.reduce((acc, { key }) => {
 
 const GALERIA_CAMPOS = Array.from({ length: 9 }, (_, i) => `imagem_${i + 1}`);
 
+// Foto cuja fonte é o painel admin.
+//
+// Enquanto o fetch do Supabase não volta, não dá para saber se o admin
+// configurou uma imagem ou não — e cair direto no fallback faz a foto errada
+// piscar na tela antes de ser trocada pela certa. Por isso o estado de
+// carregando é tratado separado: mostra um fundo neutro no mesmo espaço da
+// foto (sem mudar o layout) e só decide entre a imagem do painel e o fallback
+// quando a resposta chega.
+function FotoRemota({ src, fallback, carregando, alt, className }) {
+  if (carregando) {
+    return <div className={`${className} bg-gray-100 animate-pulse`} aria-hidden="true" />;
+  }
+
+  return (
+    <img
+      src={src || fallback}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
 function ItemDestaque({ texto, visivel, atraso, lado }) {
   const bordas = lado === 'direita'
     ? 'border-y border-l rounded-l-md justify-self-start'
@@ -73,12 +97,15 @@ function LinhaConectora({ visivel, atraso, lado }) {
 
 export default function Sobre() {
   const [fotoHistoria, setFotoHistoria] = useState(null);
+  const [historiaCarregada, setHistoriaCarregada] = useState(false);
   const [videoTocando, setVideoTocando] = useState(false);
   const [destaques, setDestaques] = useState(DESTAQUES_PADRAO);
+  const [destaquesCarregados, setDestaquesCarregados] = useState(false);
   const [destaquesVisiveis, setDestaquesVisiveis] = useState(false);
   const refSecaoDestaques = useRef(null);
   const [redesSociais, setRedesSociais] = useState(REDES_SOCIAIS_PADRAO);
   const [fotosGaleria, setFotosGaleria] = useState(null);
+  const [galeriaCarregada, setGaleriaCarregada] = useState(false);
 
   useEffect(() => {
     async function buscarGaleria() {
@@ -98,6 +125,10 @@ export default function Sobre() {
         }
       } catch (err) {
         console.error('Erro ao buscar a galeria da página Sobre:', err);
+      } finally {
+        // Também no erro: sem isto o skeleton ficaria girando para sempre em
+        // vez de cair no fallback.
+        setGaleriaCarregada(true);
       }
     }
     buscarGaleria();
@@ -159,6 +190,8 @@ export default function Sobre() {
         }
       } catch (err) {
         console.error('Erro ao buscar os destaques da página Sobre:', err);
+      } finally {
+        setDestaquesCarregados(true);
       }
     }
     buscarDestaques();
@@ -194,6 +227,8 @@ export default function Sobre() {
         if (data?.imagem_url) setFotoHistoria(data.imagem_url);
       } catch (err) {
         console.error('Erro ao buscar a foto de Nossa História:', err);
+      } finally {
+        setHistoriaCarregada(true);
       }
     }
     buscarFotoHistoria();
@@ -360,12 +395,12 @@ export default function Sobre() {
 
             {/* CONTAINER DA FOTO PRINCIPAL */}
             <div className="relative w-full aspect-[4/3] md:aspect-[1.35/1] rounded-[48px_120px_40px_140px] overflow-hidden shadow-[0_30px_70px_rgba(15,23,42,0.18)] z-10">
-              <img
-                src={fotoHistoria || imagemInstitucional}
+              <FotoRemota
+                src={fotoHistoria}
+                fallback={imagemInstitucional}
+                carregando={!historiaCarregada}
                 alt="Alunos LATec"
                 className="w-full h-full object-cover object-center"
-                loading="lazy"
-                decoding="async"
               />
             </div>
 
@@ -402,7 +437,7 @@ export default function Sobre() {
           <LinhaConectora lado="esquerda" visivel={destaquesVisiveis} atraso={(4 - 1) * 500} />
           <div className="row-span-4 relative w-full h-full flex items-center justify-center">
             <div className="relative w-full max-w-[260px] aspect-[3/4] rounded-[32px] overflow-hidden">
-              <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <FotoRemota src={destaques.imagem_url} fallback={imagemInstitucional} carregando={!destaquesCarregados} alt="Destaque LATec" className="w-full h-full object-cover" />
             </div>
           </div>
           <LinhaConectora lado="direita" visivel={destaquesVisiveis} atraso={(4 - 1) * 500} />
@@ -427,7 +462,7 @@ export default function Sobre() {
         {/* Layout mobile/tablet: imagem no topo + grade 2 colunas */}
         <div className="lg:hidden flex flex-col items-center gap-8">
           <div className="relative w-full max-w-[240px] aspect-[3/4] rounded-[32px] overflow-hidden">
-            <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+            <FotoRemota src={destaques.imagem_url} fallback={imagemInstitucional} carregando={!destaquesCarregados} alt="Destaque LATec" className="w-full h-full object-cover" />
           </div>
           <div className="grid grid-cols-2 gap-3 w-full max-w-md">
             {[destaques.esquerda_1, destaques.direita_1, destaques.esquerda_2, destaques.direita_2, destaques.esquerda_3, destaques.direita_3, destaques.esquerda_4, destaques.direita_4].map((texto, i) => (
@@ -495,7 +530,7 @@ export default function Sobre() {
         </h2>
         <br></br>
       </div>
-      <ParallaxGallery images={fotosGaleria} />
+      <ParallaxGallery images={fotosGaleria} carregando={!galeriaCarregada} />
       <br></br>
 
       {/* 3. SEÇÃO MANIFESTO (Container mais largo e vídeo sem borda) */}

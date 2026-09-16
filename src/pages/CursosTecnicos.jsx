@@ -1,5 +1,5 @@
 import ListaCursos from './ListaCursos';
-import heroTecnicos from '../assets/bannertecnico.png';
+import heroTecnicos from '../assets/bannertecnico.webp';
 
 // Página do tipo "Técnicos": mesma estrutura do catálogo, sem as abas de
 // filtro e com a sua própria hero.

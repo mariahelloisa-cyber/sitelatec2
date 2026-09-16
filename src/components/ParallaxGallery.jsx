@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import foto1 from '../assets/imghero.webp';
 import foto2 from '../assets/fundo-login.webp';
 import foto3 from '../assets/sobreHeroFoto.webp';
-import foto4 from '../assets/vagas.png';
+import foto4 from '../assets/vagas.webp';
 import foto5 from '../assets/fundoo.webp';
 import foto6 from '../assets/hero.webp';
 
@@ -22,7 +22,7 @@ function Column({ images, y }) {
     >
       {images.map((src, i) => (
         <div key={i} className="relative h-full w-full overflow-hidden rounded-2xl">
-          <img src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" />
+          <img src={src} alt="LATec" className="pointer-events-none h-full w-full object-cover" loading="lazy" decoding="async" />
         </div>
       ))}
     </motion.div>

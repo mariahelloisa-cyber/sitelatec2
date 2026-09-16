@@ -1,5 +1,5 @@
 import ListaCursos from './ListaCursos';
-import heroProfissionalizantes from '../assets/bannerprofissional.png';
+import heroProfissionalizantes from '../assets/bannerprofissional.webp';
 
 // Página do tipo "Profissionalizantes": reúne as três faixas (comuns,
 // avançados e premium), sem as abas de filtro e com a sua própria hero.

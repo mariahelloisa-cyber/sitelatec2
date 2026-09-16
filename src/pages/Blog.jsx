@@ -205,7 +205,7 @@ export default function Blog() {
                     <Link key={post.id} to={`/blog/${post.id}`} className="flex flex-col bg-white rounded-[20px] overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_45px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 border border-gray-100 group">
                       
                       <div className="w-full h-52 overflow-hidden relative">
-                        <img src={post.fotoUrl} alt={post.titulo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" />
+                        <img src={post.fotoUrl} alt={post.titulo} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" loading="lazy" decoding="async" />
                         <span className="absolute top-4 left-4 bg-[#cd146e] text-white font-bold text-[9px] tracking-wider uppercase py-1 px-3 rounded-full shadow-md">
                           {post.categoria}
                         </span>

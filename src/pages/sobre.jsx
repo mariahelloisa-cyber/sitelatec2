@@ -4,7 +4,7 @@ import ParallaxGallery from '../components/ParallaxGallery';
 import CtaWhatsapp from '../components/CtaWhatsapp';
 import { supabase } from '../supabaseClient';
 import { urlSegura } from '../utils/urlSegura';
-import imagemInstitucional from '../assets/vagas.png';
+import imagemInstitucional from '../assets/vagas.webp';
 import selo6 from '../assets/selo6.webp';
 import fotoHeroSobre from '../assets/sobreHeroFoto.webp';
 
@@ -364,6 +364,8 @@ export default function Sobre() {
                 src={fotoHistoria || imagemInstitucional}
                 alt="Alunos LATec"
                 className="w-full h-full object-cover object-center"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -400,7 +402,7 @@ export default function Sobre() {
           <LinhaConectora lado="esquerda" visivel={destaquesVisiveis} atraso={(4 - 1) * 500} />
           <div className="row-span-4 relative w-full h-full flex items-center justify-center">
             <div className="relative w-full max-w-[260px] aspect-[3/4] rounded-[32px] overflow-hidden">
-              <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" />
+              <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </div>
           </div>
           <LinhaConectora lado="direita" visivel={destaquesVisiveis} atraso={(4 - 1) * 500} />
@@ -425,7 +427,7 @@ export default function Sobre() {
         {/* Layout mobile/tablet: imagem no topo + grade 2 colunas */}
         <div className="lg:hidden flex flex-col items-center gap-8">
           <div className="relative w-full max-w-[240px] aspect-[3/4] rounded-[32px] overflow-hidden">
-            <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" />
+            <img src={destaques.imagem_url || imagemInstitucional} alt="Destaque LATec" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           </div>
           <div className="grid grid-cols-2 gap-3 w-full max-w-md">
             {[destaques.esquerda_1, destaques.direita_1, destaques.esquerda_2, destaques.direita_2, destaques.esquerda_3, destaques.direita_3, destaques.esquerda_4, destaques.direita_4].map((texto, i) => (
@@ -467,6 +469,8 @@ export default function Sobre() {
                         src={redesSociais[`${key}_imagem`]}
                         alt={label}
                         className="w-full h-full object-cover object-top"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs font-bold uppercase text-center px-2">
@@ -538,6 +542,8 @@ Assista ao vídeo e descubra como estamos conectando conhecimento, oportunidades
                     src={imagemInstitucional}
                     alt="Capa do Manifesto"
                     className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
 

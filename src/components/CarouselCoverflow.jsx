@@ -100,7 +100,7 @@ export default function CarouselCoverflow({
         {items.map((item, index) => (
           <SwiperSlide key={item.id ?? index}>
             <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-xl">
-              <img src={item.src} alt={item.alt} className="h-full w-full object-cover" />
+              <img src={item.src} alt={item.alt} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               {item.titulo && (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />

@@ -42,6 +42,7 @@ import { parseGradeCurricular, serializeGradeCurricular } from '../utils/gradeCu
 import { parseBlocosConteudo, serializeBlocosConteudo } from '../utils/blocosConteudo';
 import { nomeArquivoSeguro } from '../utils/nomeArquivo';
 import { uploadImagemSegura } from '../utils/uploadSeguro';
+import meclogo from '../assets/meclogo.webp';
 
 // --- Helpers para o formulário estruturado de Grade Curricular / Conteúdo do admin ---
 function criarDisciplinaVazia() {
@@ -2011,7 +2012,7 @@ async function handleEliminarNoticia(id) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {banners.map((b) => (
                   <div key={b.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm">
-                    <img src={b.imagem_url} alt="" className="w-full h-32 object-cover" />
+                    <img src={b.imagem_url} alt="" className="w-full h-32 object-cover" loading="lazy" decoding="async" />
                     <button onClick={() => handleEliminarBanner(b.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer">✕</button>
                     <div className="p-3 text-left truncate text-xs font-bold text-gray-800">{b.titulo || "Sem Título"}</div>
                   </div>
@@ -2048,7 +2049,7 @@ async function handleEliminarNoticia(id) {
                   <div key={s.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-between relative shadow-sm h-36">
                     <button onClick={() => handleEliminarSelo(s.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs cursor-pointer">✕</button>
                     <div className="flex-1 flex items-center justify-center w-full">
-                      <img src={s.imagem_url} alt="" className="h-12 w-auto object-contain" />
+                      <img src={s.imagem_url} alt="" className="h-12 w-auto object-contain" loading="lazy" decoding="async" />
                     </div>
                     <p className="text-[11px] font-bold text-gray-600 text-center truncate w-full mt-2">{s.nome}</p>
                   </div>
@@ -2095,7 +2096,7 @@ async function handleEliminarNoticia(id) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {listaDiferenciais.map((d) => (
                   <div key={d.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm flex items-center p-3 gap-4">
-                    <img src={d.fotoUrl} alt="" className="w-16 h-16 object-cover rounded-lg bg-gray-800 shrink-0" />
+                    <img src={d.fotoUrl} alt="" className="w-16 h-16 object-cover rounded-lg bg-gray-800 shrink-0" loading="lazy" decoding="async" />
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-black text-gray-900 truncate">{d.titulo}</p>
                     </div>
@@ -2218,7 +2219,7 @@ async function handleEliminarNoticia(id) {
               <div className="flex flex-col gap-4 max-h-[530px] overflow-y-auto pr-2">
                 {noticiasDestaque.map((n) => (
                   <div key={n.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm flex items-center p-4 gap-4">
-                    <img src={n.fotoUrl} alt="" className="w-20 h-20 object-cover rounded-lg bg-gray-800 shrink-0" />
+                    <img src={n.fotoUrl} alt="" className="w-20 h-20 object-cover rounded-lg bg-gray-800 shrink-0" loading="lazy" decoding="async" />
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-black text-gray-900 truncate">{n.titulo}</p>
@@ -2554,7 +2555,7 @@ async function handleEliminarNoticia(id) {
               <h3 className="text-base font-black uppercase text-gray-900 mb-4 tracking-wide">Foto Atual</h3>
               {fotoHistoria ? (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden relative shadow-sm max-w-xs">
-                  <img src={fotoHistoria.fotoUrl} alt="" className="w-full h-40 object-cover" />
+                  <img src={fotoHistoria.fotoUrl} alt="" className="w-full h-40 object-cover" loading="lazy" decoding="async" />
                   <button onClick={() => handleEliminarFotoHistoria(fotoHistoria.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm cursor-pointer">✕</button>
                 </div>
               ) : (
@@ -2648,7 +2649,7 @@ async function handleEliminarNoticia(id) {
                     ) : (
                       cursosCadFiltrados.map((c) => (
                         <div key={c.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors">
-                          <img src={c.imagem_url} alt="" className="w-14 h-14 object-cover rounded-lg bg-gray-800 shrink-0" />
+                          <img src={c.imagem_url} alt="" className="w-14 h-14 object-cover rounded-lg bg-gray-800 shrink-0" loading="lazy" decoding="async" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-black text-gray-900 truncate">{c.titulo}</p>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -3092,7 +3093,7 @@ async function handleEliminarNoticia(id) {
                     <div>
                       <label className="text-xs text-gray-500 font-bold block mb-1 uppercase">Imagem Central</label>
                       {destaquesSobreForm.imagem_url && (
-                        <img src={destaquesSobreForm.imagem_url} alt="Prévia" className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" />
+                        <img src={destaquesSobreForm.imagem_url} alt="Prévia" className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" loading="lazy" decoding="async" />
                       )}
                       <input
                         type="file"
@@ -3158,7 +3159,7 @@ async function handleEliminarNoticia(id) {
                         <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-4 items-start">
                           <div>
                             {redesSociaisSobreForm[`${key}_imagem`] && (
-                              <img src={redesSociaisSobreForm[`${key}_imagem`]} alt={`Prévia ${label}`} className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" />
+                              <img src={redesSociaisSobreForm[`${key}_imagem`]} alt={`Prévia ${label}`} className="w-24 h-32 object-cover rounded-xl mb-2 border border-gray-200" loading="lazy" decoding="async" />
                             )}
                             <input
                               type="file"
@@ -3206,7 +3207,7 @@ async function handleEliminarNoticia(id) {
                         <div key={campo} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 items-center">
                           <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Foto {i + 1}</h4>
                           {galeriaSobreForm[campo] && (
-                            <img src={galeriaSobreForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                            <img src={galeriaSobreForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" loading="lazy" decoding="async" />
                           )}
                           <input
                             type="file"
@@ -3242,7 +3243,7 @@ async function handleEliminarNoticia(id) {
                         <div key={campo} className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 items-center">
                           <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Foto {i + 1}</h4>
                           {carrossel3dForm[campo] && (
-                            <img src={carrossel3dForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                            <img src={carrossel3dForm[campo]} alt={`Prévia ${i + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" loading="lazy" decoding="async" />
                           )}
                           <input
                             type="file"
@@ -3285,6 +3286,13 @@ async function handleEliminarNoticia(id) {
                   key={banner.id ?? idx}
                   src={banner.imagem_url}
                   alt="LATec Banner"
+                  // Os slides ficam empilhados dentro da viewport, então
+                  // loading="lazy" não adiaria nada: o navegador considera
+                  // visível até o que está com opacity 0. O que dá para fazer
+                  // é ordenar a fila — o slide que aparece primeiro na tela
+                  // disputa banda com prioridade, os outros ficam para depois.
+                  fetchPriority={idx === indexAtual ? 'high' : 'low'}
+                  decoding="async"
                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
                     idx === indexAtual ? 'opacity-100' : 'opacity-0'
                   }`}
@@ -3396,12 +3404,12 @@ async function handleEliminarNoticia(id) {
           <div className="relative w-full overflow-hidden flex bg-white py-2">
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" loading="lazy" decoding="async" />
 ))}
             </div>
             <div className="animate-marquee flex gap-16 shrink-0 justify-around min-w-full px-8 items-center">
               {listaSelos.map((selo, i) => (
-  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" />
+  <img key={`l1-${selo.id || i}`} src={selo.imagem_url} alt={selo.nome} className="h-16 md:h-24 w-auto object-contain inline-block transition-transform hover:scale-105 duration-300" loading="lazy" decoding="async" />
 ))}
             </div>
           </div>
@@ -3494,15 +3502,19 @@ async function handleEliminarNoticia(id) {
               src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=600" 
               alt="Alunos LATec" 
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute right-0 top-[110px] translate-x-1/2 z-30 w-24 h-24 flex items-center justify-center">
               <img 
-                src="meclogo.png" 
+                src={meclogo} 
                 alt="Símbolo Oficial MEC"
                 className="w-full h-full object-contain drop-shadow-md"
                 onError={(e) => {
                   e.target.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Bras%C3%A3o_do_Brasil.svg/1200px-Bras%C3%A3o_do_Brasil.svg.png";
                 }}
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -3521,6 +3533,8 @@ async function handleEliminarNoticia(id) {
                     src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=600" 
                     alt="Alunos LATec" 
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -3550,6 +3564,8 @@ async function handleEliminarNoticia(id) {
                           src={curso.fotoUrl} 
                           alt={curso.titulo} 
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <span className="absolute top-2 left-2 bg-[#cd146e] text-white font-black text-[8px] tracking-wider uppercase py-0.5 px-2 rounded-full">
                           {curso.categoria}
@@ -3651,6 +3667,8 @@ async function handleEliminarNoticia(id) {
                 src={principal.fotoUrl}
                 alt={principal.titulo}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/60 to-transparent"></div>
 
@@ -3700,6 +3718,8 @@ async function handleEliminarNoticia(id) {
                       src={item.fotoUrl}
                       alt={item.titulo}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/70 to-transparent"></div>
                     <div className="relative z-10 mt-auto p-5 flex flex-col h-full justify-end">
@@ -3737,6 +3757,8 @@ async function handleEliminarNoticia(id) {
                   src={quarto.fotoUrl}
                   alt={quarto.titulo}
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/70 to-transparent"></div>
                 <div className="relative z-10 mt-auto p-6 flex flex-col h-full justify-end">

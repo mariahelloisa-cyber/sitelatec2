@@ -208,7 +208,7 @@ export default function PostDetalhe() {
                   className="flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 group"
                 >
                   <div className="w-full h-44 overflow-hidden">
-                    <img src={itemRel.fotoUrl} alt={itemRel.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <img src={itemRel.fotoUrl} alt={itemRel.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" />
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
                     <span className="text-[10px] font-extrabold text-[#cd146e] uppercase tracking-wider mb-2 block">
